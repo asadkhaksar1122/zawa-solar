@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -18,6 +19,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  //This is required for RTK Query to properly work with Next.js App Router
+  // experimental: {
+  //   typedRoutes: true, // If you are using typed routes
+  // },
 };
 
 export default nextConfig;
