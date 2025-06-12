@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -59,7 +60,8 @@ export default function AdminDashboardPage() {
             <Link href="/admin/solutions">Manage Solutions</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/admin/solutions/new">Add New Solution</Link>
+            {/* Changed href from "/admin/solutions/new" to "/admin/solutions" */}
+            <Link href="/admin/solutions">Add New Solution</Link>
           </Button>
         </CardContent>
       </Card>
