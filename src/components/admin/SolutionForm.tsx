@@ -21,8 +21,9 @@ import type { SolarSolution, Company } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { addSolarSolution, updateSolarSolution } from '@/app/admin/solutions/actions';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { X } from 'lucide-react';
 
 const solutionFormSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
@@ -49,10 +50,10 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
   const companyMap = new Map(companies.map(c => [c.id, c.name]));
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  // Initialize fileDataUri only if solution.imageUrl is a Data URI
   const [fileDataUri, setFileDataUri] = useState<string | null>(
     solution?.imageUrl && solution.imageUrl.startsWith('data:image') ? solution.imageUrl : null
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<SolutionFormValues>({
     resolver: zodResolver(solutionFormSchema),
@@ -97,7 +98,6 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
       setFileDataUri(null);
       setSelectedFile(null);
     }
-  // form.reset is stable, solution is the key dependency. Included form.reset for completeness.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [solution, form.reset]);
 
@@ -109,26 +109,44 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
       const reader = new FileReader();
       reader.onloadend = () => {
         setFileDataUri(reader.result as string);
-        form.setValue('imageUrl', '', { shouldValidate: false }); // Clear text URL field, no need to validate it now
+        form.setValue('imageUrl', '', { shouldValidate: false }); 
       };
       reader.readAsDataURL(file);
     } else {
-      setSelectedFile(null);
-      setFileDataUri(null);
+      // If no file is selected (e.g., user cancels file dialog),
+      // retain existing preview if any, or revert to URL if that was the intention.
+      // For simplicity, we can just ensure selectedFile and fileDataUri are nulled if file input is cleared.
+      // However, standard browser behavior might not trigger change if dialog is cancelled.
+      // If a file was previously selected and then user opens dialog and cancels, we don't want to lose the previous file.
+      // This current logic is fine if a new file is picked or selection is cleared.
     }
+  };
+
+  const handleRemoveImage = () => {
+    setFileDataUri(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''; // Reset file input
+    }
+    // Optional: if you want to re-populate imageUrl field with original solution.imageUrl if editing
+    // if (solution && solution.imageUrl && !solution.imageUrl.startsWith('data:image')) {
+    //   form.setValue('imageUrl', solution.imageUrl);
+    // }
   };
 
   const handleUrlInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const urlValue = event.target.value;
     form.setValue('imageUrl', urlValue, { shouldValidate: true });
-    if (urlValue) {
-      setSelectedFile(null); 
-      setFileDataUri(null);   
+    if (urlValue) { // If user types in URL, clear any uploaded file
+      setFileDataUri(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
   
   const resetFormAndLocalState = () => {
-    // Reset form based on whether it's an edit or add scenario
     if (solution) {
         form.reset({
             ...solution,
@@ -148,6 +166,9 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
         setFileDataUri(null);
     }
     setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
 
@@ -163,7 +184,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
     if (finalImageUrl) {
       formDataObj.append('imageUrl', finalImageUrl);
     } else {
-      formDataObj.append('imageUrl', ''); // Send empty if none, server action will use placeholder
+      formDataObj.append('imageUrl', ''); 
     }
 
     if (data.powerOutput) formDataObj.append('powerOutput', data.powerOutput);
@@ -187,7 +208,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
       if (onFormSubmit) {
         onFormSubmit();
       } else {
-        router.push('/admin/solutions');
+        // router.push('/admin/solutions'); // Removed to prevent navigation before dialog closes
         router.refresh(); 
       }
     } else {
@@ -253,18 +274,34 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
           )}
         />
 
-        {/* File Upload Field */}
         <FormItem>
           <FormLabel>Upload Product Image</FormLabel>
           <FormControl>
-            <Input type="file" accept="image/png, image/jpeg, image/gif, image/webp" onChange={handleFileChange} className="file:text-primary file:font-medium" />
+            <Input 
+              ref={fileInputRef} 
+              type="file" 
+              accept="image/png, image/jpeg, image/gif, image/webp" 
+              onChange={handleFileChange} 
+              className="file:text-primary file:font-medium" 
+            />
           </FormControl>
           <FormDescription>
             Upload an image (PNG, JPG, GIF, WEBP). Takes precedence over URL.
           </FormDescription>
           {fileDataUri && (
-            <div className="mt-2 border rounded-md p-2 inline-block">
-              <Image src={fileDataUri} alt="Image preview" width={100} height={100} className="rounded-md object-contain" />
+            <div className="mt-2 flex items-start gap-2">
+              <div className="border rounded-md p-1 inline-block bg-muted/30">
+                <Image src={fileDataUri} alt="Image preview" width={80} height={80} className="rounded-md object-contain" />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRemoveImage}
+                className="gap-1.5"
+              >
+                <X className="h-3.5 w-3.5" /> Remove
+              </Button>
             </div>
           )}
         </FormItem>
@@ -347,7 +384,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={form.formState.isSubmitting} className="w-full sm:w-auto">
+        <Button type="submit" disabled={form.formState.isSubmitting || (!form.formState.isValid && form.formState.isDirty)} className="w-full sm:w-auto">
           {form.formState.isSubmitting ? 'Saving...' : (solution ? 'Update Solution' : 'Add Solution')}
         </Button>
       </form>
