@@ -1,3 +1,4 @@
+
 'use client'; 
 
 import { useState } from 'react';
@@ -25,6 +26,7 @@ import { SolutionForm } from '@/components/admin/SolutionForm';
 import { solarSolutions, companies as initialCompanies } from '@/lib/data'; // Using mock data, renamed companyCategories
 import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory
 import { useRouter } from 'next/navigation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 export default function AdminSolutionsPage() {
@@ -58,7 +60,9 @@ export default function AdminSolutionsPage() {
                 Fill in the details for the new solar solution.
               </DialogDescription>
             </DialogHeader>
-            <SolutionForm companies={companies} onFormSubmit={handleFormSubmit} />
+            <ScrollArea className="max-h-[70vh] pr-6">
+              <SolutionForm companies={companies} onFormSubmit={handleFormSubmit} />
+            </ScrollArea>
             <DialogFooter>
                 <DialogClose asChild>
                     <Button variant="outline">Cancel</Button>

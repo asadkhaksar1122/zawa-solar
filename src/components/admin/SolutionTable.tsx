@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -46,6 +47,7 @@ import { SolutionForm } from './SolutionForm';
 import { deleteSolarSolution } from '@/app/admin/solutions/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface SolutionTableProps {
   solutions: SolarSolution[];
@@ -160,7 +162,10 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
         </div>
       )}
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+      <Dialog open={isEditModalOpen} onOpenChange={(isOpen) => {
+          setIsEditModalOpen(isOpen);
+          if (!isOpen) setSelectedSolution(null);
+      }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle className="font-headline">Edit Solar Solution</DialogTitle>
@@ -169,7 +174,9 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
             </DialogDescription>
           </DialogHeader>
           {selectedSolution && (
-            <SolutionForm solution={selectedSolution} companies={companies} onFormSubmit={handleFormSubmit} />
+            <ScrollArea className="max-h-[70vh] pr-6">
+              <SolutionForm solution={selectedSolution} companies={companies} onFormSubmit={handleFormSubmit} />
+            </ScrollArea>
           )}
           <DialogFooter>
              <DialogClose asChild>
