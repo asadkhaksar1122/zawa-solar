@@ -1,4 +1,4 @@
-import type { SolarSolution, Company } from './types';
+import type { SolarSolution, Company, ContactSettings } from './types';
 
 export const companies: Company[] = [
   { id: 'comp1', name: 'SunPower' },
@@ -84,3 +84,13 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '25-year complete confidence warranty',
   },
 ];
+
+// In a real app, this would come from a database or a persistent store.
+// For this prototype, it's in-memory.
+export let contactSettingsData: ContactSettings = {
+  whatsappNumbers: [{ id: `wa-${Date.now()}`, value: '+1122334455' }],
+  emailAddresses: [{ id: `em-${Date.now()}`, value: 'info@zawaenergy.com' }],
+  phoneNumbers: [{ id: `ph-${Date.now()}`, value: '+1 (555) 123-4567' }],
+  facebookUrl: 'https://www.facebook.com/zawaenergy',
+  officeAddress: '123 Solar Street, Energy City, EC 12345, Powerland',
+};

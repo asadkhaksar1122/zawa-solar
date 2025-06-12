@@ -7,6 +7,7 @@ export const companiesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getCompanies: builder.query<Company[], void>({
       query: () => 'companies', // This will make a GET request to /api/companies
+      providesTags: ['Companies'], // Added tag
     }),
     // You can inject other company-related endpoints here
   }),
