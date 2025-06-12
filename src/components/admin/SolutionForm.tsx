@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { SolarSolution, CompanyCategory } from '@/lib/types';
+import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory to Company
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { addSolarSolution, updateSolarSolution } from '@/app/admin/solutions/actions';
@@ -36,8 +36,8 @@ type SolutionFormValues = z.infer<typeof solutionFormSchema>;
 
 interface SolutionFormProps {
   solution?: SolarSolution | null;
-  companies: CompanyCategory[];
-  onFormSubmit?: () => void; // Callback to close dialog or navigate
+  companies: Company[]; // Renamed CompanyCategory to Company
+  onFormSubmit?: () => void; 
 }
 
 export function SolutionForm({ solution, companies, onFormSubmit }: SolutionFormProps) {
@@ -88,7 +88,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
         onFormSubmit();
       } else {
         router.push('/admin/solutions');
-        router.refresh(); // Ensure the page re-fetches data
+        router.refresh(); 
       }
     } else {
       toast({

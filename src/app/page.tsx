@@ -5,8 +5,8 @@ import { UserHeader } from '@/components/user/Header';
 import { UserFooter } from '@/components/user/Footer';
 import { SolarSolutionCard } from '@/components/user/SolarSolutionCard';
 import { FilterPanel } from '@/components/user/FilterPanel';
-import { solarSolutions, companyCategories } from '@/lib/data';
-import type { SolarSolution } from '@/lib/types';
+import { solarSolutions, companies } from '@/lib/data'; // Renamed companyCategories to companies
+import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory to Company
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -27,6 +27,9 @@ export default function HomePage() {
       return matchesCategory && matchesSearch;
     });
   }, [selectedCompanyId, searchTerm]);
+
+  // Use the renamed 'companies' for the FilterPanel
+  const companyList: Company[] = companies;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -69,7 +72,7 @@ export default function HomePage() {
             <div className="grid md:grid-cols-4 gap-8">
               <div className="md:col-span-1">
                 <FilterPanel
-                  categories={companyCategories}
+                  categories={companyList} // Pass renamed 'companies' as categories
                   selectedCategory={selectedCompanyId}
                   onCategoryChange={setSelectedCompanyId}
                 />

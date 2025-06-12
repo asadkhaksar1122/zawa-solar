@@ -3,12 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Box, Tag, Settings } from 'lucide-react';
+import { LayoutDashboard, Box, Building, Settings } from 'lucide-react'; // Added Building icon
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/solutions', label: 'Solar Solutions', icon: Box },
-  // { href: '/admin/categories', label: 'Categories', icon: Tag },
+  { href: '/admin/companies', label: 'Companies', icon: Building },
   // { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

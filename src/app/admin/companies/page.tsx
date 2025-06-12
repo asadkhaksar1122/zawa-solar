@@ -20,20 +20,19 @@ import {
   DialogClose
 } from '@/components/ui/dialog';
 import { PlusCircle } from 'lucide-react';
-import { SolutionTable } from '@/components/admin/SolutionTable';
-import { SolutionForm } from '@/components/admin/SolutionForm';
-import { solarSolutions, companies as initialCompanies } from '@/lib/data'; // Using mock data, renamed companyCategories
-import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory
+import { CompanyTable } from '@/components/admin/CompanyTable';
+import { CompanyForm } from '@/components/admin/CompanyForm';
+import { companies as initialCompanies } from '@/lib/data'; // Using mock data
+import type { Company } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
-
-export default function AdminSolutionsPage() {
+export default function AdminCompaniesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const router = useRouter();
 
-  // For this example, we continue using static mock data directly.
-  const solutions: SolarSolution[] = solarSolutions;
-  const companies: Company[] = initialCompanies; // Use renamed 'companies'
+  // For this prototype, we use the static mock data directly.
+  // Server actions will call revalidatePath, and router.refresh() will help update client-side.
+  const companies: Company[] = initialCompanies;
 
   const handleFormSubmit = () => {
     setIsAddModalOpen(false);
@@ -43,22 +42,22 @@ export default function AdminSolutionsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-headline text-2xl font-semibold">Manage Solar Solutions</h1>
+        <h1 className="font-headline text-2xl font-semibold">Manage Companies</h1>
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-1">
               <PlusCircle className="h-4 w-4" />
-              Add Solution
+              Add Company
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle className="font-headline">Add New Solar Solution</DialogTitle>
+              <DialogTitle className="font-headline">Add New Company</DialogTitle>
               <DialogDescription>
-                Fill in the details for the new solar solution.
+                Fill in the details for the new company.
               </DialogDescription>
             </DialogHeader>
-            <SolutionForm companies={companies} onFormSubmit={handleFormSubmit} />
+            <CompanyForm onFormSubmit={handleFormSubmit} />
             <DialogFooter>
                 <DialogClose asChild>
                     <Button variant="outline">Cancel</Button>
@@ -70,13 +69,13 @@ export default function AdminSolutionsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Solutions</CardTitle>
+          <CardTitle>All Companies</CardTitle>
           <CardDescription>
-            A list of all solar solutions in the system. You can edit or delete them.
+            A list of all companies providing solar solutions. You can edit or delete them.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SolutionTable solutions={solutions} companies={companies} />
+          <CompanyTable companies={companies} />
         </CardContent>
       </Card>
     </div>

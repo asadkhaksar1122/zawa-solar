@@ -1,8 +1,7 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
-import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory to Company
+import type { Company } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -17,7 +16,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -26,7 +24,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
@@ -39,34 +36,36 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit3, Trash2, Eye } from 'lucide-react';
-import { SolutionForm } from './SolutionForm';
-import { deleteSolarSolution } from '@/app/admin/solutions/actions';
+import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
+import { CompanyForm } from './CompanyForm';
+import { deleteCompany } from '@/app/admin/companies/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 
-interface SolutionTableProps {
-  solutions: SolarSolution[];
-  companies: Company[]; // Renamed CompanyCategory to Company
+interface CompanyTableProps {
+  companies: Company[];
 }
 
-export function SolutionTable({ solutions, companies }: SolutionTableProps) {
+export function CompanyTable({ companies: initialCompanies }: CompanyTableProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedSolution, setSelectedSolution] = useState<SolarSolution | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  
+  // Use initialCompanies for display. Server actions will revalidate and router.refresh() will update.
+  const companies = initialCompanies;
 
-  const handleEdit = (solution: SolarSolution) => {
-    setSelectedSolution(solution);
+
+  const handleEdit = (company: Company) => {
+    setSelectedCompany(company);
     setIsEditModalOpen(true);
   };
 
-  const handleDelete = async (solutionId: string) => {
-    const result = await deleteSolarSolution(solutionId);
+  const handleDelete = async (companyId: string, companyName: string) => {
+    const result = await deleteCompany(companyId);
     if (result.success) {
-      toast({ title: 'Solution Deleted', description: result.message });
+      toast({ title: 'Company Deleted', description: `Company "${companyName}" ${result.message}` });
       router.refresh(); 
     } else {
       toast({ title: 'Error', description: result.message, variant: 'destructive' });
@@ -75,44 +74,26 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
   
   const handleFormSubmit = () => {
     setIsEditModalOpen(false);
-    setSelectedSolution(null);
+    setSelectedCompany(null);
     router.refresh();
   }
-
 
   return (
     <>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
             <TableHead>Name</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead className="hidden md:table-cell">Description</TableHead>
-            <TableHead>
+            <TableHead className="w-[100px] text-right">
               <span className="sr-only">Actions</span>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {solutions.map((solution) => (
-            <TableRow key={solution.id}>
-              <TableCell className="hidden sm:table-cell">
-                <Image
-                  alt={solution.name}
-                  className="aspect-square rounded-md object-cover"
-                  height="64"
-                  src={solution.imageUrl || 'https://placehold.co/64x64.png'}
-                  width="64"
-                  data-ai-hint="solar panel small"
-                />
-              </TableCell>
-              <TableCell className="font-medium">{solution.name}</TableCell>
-              <TableCell>{solution.company}</TableCell>
-              <TableCell className="hidden md:table-cell max-w-xs truncate">
-                {solution.description}
-              </TableCell>
-              <TableCell>
+          {companies.map((company) => (
+            <TableRow key={company.id}>
+              <TableCell className="font-medium">{company.name}</TableCell>
+              <TableCell className="text-right">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -122,12 +103,12 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => handleEdit(solution)}>
+                    <DropdownMenuItem onClick={() => handleEdit(company)}>
                       <Edit3 className="mr-2 h-4 w-4" /> Edit
                     </DropdownMenuItem>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
@@ -136,12 +117,12 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
                             This action cannot be undone. This will permanently delete the
-                            solar solution &quot;{solution.name}&quot;.
+                            company &quot;{company.name}&quot;. Any solar solutions associated with this company might need to be updated.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(solution.id)}>
+                          <AlertDialogAction onClick={() => handleDelete(company.id, company.name)} variant="destructive">
                             Continue
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -154,22 +135,25 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
           ))}
         </TableBody>
       </Table>
-      {solutions.length === 0 && (
+      {companies.length === 0 && (
         <div className="text-center py-10 text-muted-foreground">
-          No solar solutions found.
+          No companies found. Add your first company to get started.
         </div>
       )}
 
-      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
+      <Dialog open={isEditModalOpen} onOpenChange={(isOpen) => {
+        setIsEditModalOpen(isOpen);
+        if (!isOpen) setSelectedCompany(null);
+      }}>
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="font-headline">Edit Solar Solution</DialogTitle>
+            <DialogTitle className="font-headline">Edit Company</DialogTitle>
             <DialogDescription>
-              Make changes to the solar solution details below.
+              Make changes to the company details below.
             </DialogDescription>
           </DialogHeader>
-          {selectedSolution && (
-            <SolutionForm solution={selectedSolution} companies={companies} onFormSubmit={handleFormSubmit} />
+          {selectedCompany && (
+            <CompanyForm company={selectedCompany} onFormSubmit={handleFormSubmit} />
           )}
           <DialogFooter>
              <DialogClose asChild>

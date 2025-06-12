@@ -1,11 +1,13 @@
-import type { SolarSolution, CompanyCategory } from './types';
+import type { SolarSolution, Company } from './types';
 
-export const companyCategories: CompanyCategory[] = [
-  { id: 'cat1', name: 'SunPower' },
-  { id: 'cat2', name: 'LG Solar' },
-  { id: 'cat3', name: 'Panasonic' },
-  { id: 'cat4', name: 'Canadian Solar' },
-  { id: 'cat5', name: 'Trina Solar' },
+export const companies: Company[] = [
+  { id: 'comp1', name: 'SunPower' },
+  { id: 'comp2', name: 'LG Solar' },
+  { id: 'comp3', name: 'Panasonic' },
+  { id: 'comp4', name: 'Canadian Solar' },
+  { id: 'comp5', name: 'Trina Solar' },
+  // Add a new example company
+  { id: 'comp6', name: 'JA Solar' },
 ];
 
 export const solarSolutions: SolarSolution[] = [
@@ -13,7 +15,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol1',
     name: 'Maxeon 3 Series Panel',
     company: 'SunPower',
-    companyId: 'cat1',
+    companyId: 'comp1',
     description: 'High-efficiency residential solar panel known for durability and performance.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '400W',
@@ -25,7 +27,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol2',
     name: 'NeON R ACe Solar Panel',
     company: 'LG Solar',
-    companyId: 'cat2',
+    companyId: 'comp2',
     description: 'Premium solar module with integrated microinverter for optimized energy production.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '375W',
@@ -37,7 +39,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol3',
     name: 'EverVolt EVPV370 Panel',
     company: 'Panasonic',
-    companyId: 'cat3',
+    companyId: 'comp3',
     description: 'High-performance solar panel with all-black aesthetics and superior temperature coefficient.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '370W',
@@ -49,7 +51,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol4',
     name: 'HiKu6 CS6W Panel',
     company: 'Canadian Solar',
-    companyId: 'cat4',
+    companyId: 'comp4',
     description: 'Cost-effective and reliable solar panel for large-scale and residential projects.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '545W',
@@ -61,7 +63,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol5',
     name: 'Vertex S Series',
     company: 'Trina Solar',
-    companyId: 'cat5',
+    companyId: 'comp5',
     description: 'Advanced solar panel technology delivering high power density and aesthetic appeal.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '405W',
@@ -73,7 +75,7 @@ export const solarSolutions: SolarSolution[] = [
     id: 'sol6',
     name: 'Performance 3 Panel',
     company: 'SunPower',
-    companyId: 'cat1',
+    companyId: 'comp1',
     description: 'Reliable and aesthetically pleasing solar panel for residential use.',
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '335W',

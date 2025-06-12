@@ -1,18 +1,18 @@
-export interface CompanyCategory {
+export interface Company {
   id: string;
   name: string;
+  // Add other relevant fields like logoUrl, description if needed in the future
 }
 
 export interface SolarSolution {
   id: string;
   name: string;
-  company: string; // Could be an ID referencing a CompanyCategory or just a string
-  companyId: string;
+  company: string; 
+  companyId: string; // This ID should correspond to a Company's id
   description: string;
   imageUrl: string;
-  // Add other relevant attributes like power_output, efficiency, warranty, price_range etc.
   powerOutput?: string;
   efficiency?: string;
   features?: string[];
-  warranty?: string; // Added warranty field
+  warranty?: string;
 }
