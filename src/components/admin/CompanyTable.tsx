@@ -36,25 +36,23 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger, // Added AlertDialogTrigger here
+  AlertDialogTrigger, 
 } from '@/components/ui/alert-dialog';
 import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
 import { CompanyForm } from './CompanyForm';
 import { deleteCompany } from '@/app/admin/companies/actions';
-import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 interface CompanyTableProps {
   companies: Company[];
 }
 
 export function CompanyTable({ companies: initialCompanies }: CompanyTableProps) {
-  const { toast } = useToast();
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   
-  // Use initialCompanies for display. Server actions will revalidate and router.refresh() will update.
   const companies = initialCompanies;
 
 
@@ -66,10 +64,18 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
   const handleDelete = async (companyId: string, companyName: string) => {
     const result = await deleteCompany(companyId);
     if (result.success) {
-      toast({ title: 'Company Deleted', description: `Company "${companyName}" ${result.message}` });
+      Swal.fire({ 
+        icon: 'success', 
+        title: 'Company Deleted', 
+        text: `Company "${companyName}" ${result.message}` 
+      });
       router.refresh(); 
     } else {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: result.message 
+      });
     }
   };
   

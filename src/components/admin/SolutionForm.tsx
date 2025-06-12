@@ -18,12 +18,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { SolarSolution, Company } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { addSolarSolution, updateSolarSolution } from '@/app/admin/solutions/actions';
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { X } from 'lucide-react';
+import Swal from 'sweetalert2';
 
 const solutionFormSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
@@ -45,7 +45,6 @@ interface SolutionFormProps {
 }
 
 export function SolutionForm({ solution, companies, onFormSubmit }: SolutionFormProps) {
-  const { toast } = useToast();
   const router = useRouter();
   const companyMap = new Map(companies.map(c => [c.id, c.name]));
 
@@ -112,13 +111,6 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
         form.setValue('imageUrl', '', { shouldValidate: false }); 
       };
       reader.readAsDataURL(file);
-    } else {
-      // If no file is selected (e.g., user cancels file dialog),
-      // retain existing preview if any, or revert to URL if that was the intention.
-      // For simplicity, we can just ensure selectedFile and fileDataUri are nulled if file input is cleared.
-      // However, standard browser behavior might not trigger change if dialog is cancelled.
-      // If a file was previously selected and then user opens dialog and cancels, we don't want to lose the previous file.
-      // This current logic is fine if a new file is picked or selection is cleared.
     }
   };
 
@@ -128,16 +120,17 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Reset file input
     }
-    // Optional: if you want to re-populate imageUrl field with original solution.imageUrl if editing
-    // if (solution && solution.imageUrl && !solution.imageUrl.startsWith('data:image')) {
-    //   form.setValue('imageUrl', solution.imageUrl);
-    // }
+    if (solution && solution.imageUrl && !solution.imageUrl.startsWith('data:image')) {
+      form.setValue('imageUrl', solution.imageUrl);
+    } else {
+      form.setValue('imageUrl', '');
+    }
   };
 
   const handleUrlInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const urlValue = event.target.value;
     form.setValue('imageUrl', urlValue, { shouldValidate: true });
-    if (urlValue) { // If user types in URL, clear any uploaded file
+    if (urlValue) { 
       setFileDataUri(null);
       setSelectedFile(null);
       if (fileInputRef.current) {
@@ -200,22 +193,21 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
     }
 
     if (result.success) {
-      toast({
+      Swal.fire({
+        icon: 'success',
         title: solution ? 'Solution Updated' : 'Solution Added',
-        description: result.message,
+        text: result.message,
       });
       resetFormAndLocalState();
       if (onFormSubmit) {
         onFormSubmit();
-      } else {
-        // router.push('/admin/solutions'); // Removed to prevent navigation before dialog closes
-        router.refresh(); 
       }
+      router.refresh(); 
     } else {
-      toast({
+      Swal.fire({
+        icon: 'error',
         title: 'Error',
-        description: result.message,
-        variant: 'destructive',
+        text: result.message,
       });
     }
   }

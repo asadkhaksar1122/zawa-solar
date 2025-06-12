@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
-import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory to Company
+import type { SolarSolution, Company } from '@/lib/types'; 
 import {
   Table,
   TableBody,
@@ -18,7 +18,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -27,7 +26,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
   DialogClose
 } from '@/components/ui/dialog';
@@ -42,20 +40,19 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit3, Trash2, Eye } from 'lucide-react';
+import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
 import { SolutionForm } from './SolutionForm';
 import { deleteSolarSolution } from '@/app/admin/solutions/actions';
-import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Swal from 'sweetalert2';
 
 interface SolutionTableProps {
   solutions: SolarSolution[];
-  companies: Company[]; // Renamed CompanyCategory to Company
+  companies: Company[]; 
 }
 
 export function SolutionTable({ solutions, companies }: SolutionTableProps) {
-  const { toast } = useToast();
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState<SolarSolution | null>(null);
@@ -68,10 +65,18 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
   const handleDelete = async (solutionId: string) => {
     const result = await deleteSolarSolution(solutionId);
     if (result.success) {
-      toast({ title: 'Solution Deleted', description: result.message });
+      Swal.fire({ 
+        icon: 'success', 
+        title: 'Solution Deleted', 
+        text: result.message 
+      });
       router.refresh(); 
     } else {
-      toast({ title: 'Error', description: result.message, variant: 'destructive' });
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Error', 
+        text: result.message 
+      });
     }
   };
   
@@ -129,7 +134,7 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
                     </DropdownMenuItem>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive focus:bg-destructive/10">
                           <Trash2 className="mr-2 h-4 w-4" /> Delete
                         </DropdownMenuItem>
                       </AlertDialogTrigger>
@@ -143,7 +148,7 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(solution.id)}>
+                          <AlertDialogAction onClick={() => handleDelete(solution.id)} variant="destructive">
                             Continue
                           </AlertDialogAction>
                         </AlertDialogFooter>

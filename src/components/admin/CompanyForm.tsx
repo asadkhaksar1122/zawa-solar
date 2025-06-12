@@ -14,9 +14,9 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import type { Company } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { addCompany, updateCompany } from '@/app/admin/companies/actions';
+import Swal from 'sweetalert2';
 
 const companyFormSchema = z.object({
   name: z.string().min(2, { message: 'Company name must be at least 2 characters.' }),
@@ -31,7 +31,6 @@ interface CompanyFormProps {
 }
 
 export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
-  const { toast } = useToast();
   const router = useRouter();
 
   const defaultValues: Partial<CompanyFormValues> = company
@@ -56,9 +55,10 @@ export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
     }
 
     if (result.success) {
-      toast({
+      Swal.fire({
+        icon: 'success',
         title: company ? 'Company Updated' : 'Company Added',
-        description: result.message,
+        text: result.message,
       });
       form.reset({ name: '' }); // Reset form after successful submission
       if (onFormSubmit) {
@@ -68,10 +68,10 @@ export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
       }
       router.refresh(); // Ensure the page re-fetches data
     } else {
-      toast({
+      Swal.fire({
+        icon: 'error',
         title: 'Error',
-        description: result.message,
-        variant: 'destructive',
+        text: result.message,
       });
     }
   }

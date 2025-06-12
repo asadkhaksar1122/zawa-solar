@@ -1,7 +1,6 @@
 
 import type {Metadata} from 'next';
 import './globals.css';
-import { Toaster } from "@/components/ui/toaster";
 import { ReduxProvider } from '@/lib/redux/ReduxProvider';
 
 export const metadata: Metadata = {
@@ -25,7 +24,6 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <ReduxProvider>
           {children}
-          <Toaster />
         </ReduxProvider>
       </body>
     </html>
