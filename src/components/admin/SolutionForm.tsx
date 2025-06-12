@@ -29,6 +29,7 @@ const solutionFormSchema = z.object({
   powerOutput: z.string().optional(),
   efficiency: z.string().optional(),
   features: z.string().optional(), // Comma-separated string
+  warranty: z.string().optional(),
 });
 
 type SolutionFormValues = z.infer<typeof solutionFormSchema>;
@@ -68,6 +69,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
     if (data.powerOutput) formData.append('powerOutput', data.powerOutput);
     if (data.efficiency) formData.append('efficiency', data.efficiency);
     if (data.features) formData.append('features', data.features);
+    if (data.warranty) formData.append('warranty', data.warranty);
     
     let result;
     if (solution) {
@@ -200,6 +202,19 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
                 <Input placeholder="Feature 1, Feature 2, Feature 3" {...field} />
               </FormControl>
               <FormDescription>Comma-separated list of features.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="warranty"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Warranty (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="E.g., 25-year product & performance" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

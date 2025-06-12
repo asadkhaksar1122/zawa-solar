@@ -2,7 +2,7 @@ import Image from 'next/image';
 import type { SolarSolution } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tag, Zap, CheckCircle, Building2 } from 'lucide-react';
+import { Tag, Zap, CheckCircle, Building2, ShieldCheck } from 'lucide-react';
 
 interface SolarSolutionCardProps {
   solution: SolarSolution;
@@ -40,6 +40,12 @@ export function SolarSolutionCard({ solution }: SolarSolutionCardProps) {
             <div className="flex items-center">
               <Tag className="mr-2 h-4 w-4 text-accent" />
               <span>Efficiency: {solution.efficiency}</span>
+            </div>
+          )}
+          {solution.warranty && (
+            <div className="flex items-center">
+              <ShieldCheck className="mr-2 h-4 w-4 text-accent" />
+              <span>Warranty: {solution.warranty}</span>
             </div>
           )}
           {solution.features && solution.features.length > 0 && (

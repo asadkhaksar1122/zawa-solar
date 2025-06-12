@@ -17,6 +17,7 @@ export async function addSolarSolution(formData: FormData): Promise<{ success: b
     powerOutput: formData.get('powerOutput') as string || undefined,
     efficiency: formData.get('efficiency') as string || undefined,
     features: (formData.get('features') as string)?.split(',').map(f => f.trim()) || undefined,
+    warranty: formData.get('warranty') as string || undefined,
   };
 
   console.log('Adding solar solution:', newSolution);
@@ -38,6 +39,7 @@ export async function updateSolarSolution(solutionId: string, formData: FormData
     powerOutput: formData.get('powerOutput') as string || undefined,
     efficiency: formData.get('efficiency') as string || undefined,
     features: (formData.get('features')as string)?.split(',').map(f => f.trim()) || undefined,
+    warranty: formData.get('warranty') as string || undefined,
   };
   
   console.log(`Updating solar solution ${solutionId}:`, updatedSolution);

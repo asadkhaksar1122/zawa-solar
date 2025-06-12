@@ -18,7 +18,8 @@ export const solarSolutions: SolarSolution[] = [
     imageUrl: 'https://placehold.co/600x400.png',
     powerOutput: '400W',
     efficiency: '22.6%',
-    features: ['Industry-leading efficiency', '25-year warranty', 'Sleek design'],
+    features: ['Industry-leading efficiency', 'Sleek design'],
+    warranty: '25-year product & performance',
   },
   {
     id: 'sol2',
@@ -30,6 +31,7 @@ export const solarSolutions: SolarSolution[] = [
     powerOutput: '375W',
     efficiency: '21.7%',
     features: ['Built-in microinverter', 'Enhanced performance in low light', 'Robust frame'],
+    warranty: '25-year product & performance',
   },
   {
     id: 'sol3',
@@ -41,6 +43,7 @@ export const solarSolutions: SolarSolution[] = [
     powerOutput: '370W',
     efficiency: '21.2%',
     features: ['All-black design', 'Triple-guard warranty', 'Excellent heat tolerance'],
+    warranty: '25-year AllGuard warranty',
   },
   {
     id: 'sol4',
@@ -52,6 +55,7 @@ export const solarSolutions: SolarSolution[] = [
     powerOutput: '545W',
     efficiency: '21.3%',
     features: ['High power output', 'LID/LeTID mitigation', 'Suitable for diverse applications'],
+    warranty: '12-year product, 25-year performance',
   },
   {
     id: 'sol5',
@@ -63,6 +67,7 @@ export const solarSolutions: SolarSolution[] = [
     powerOutput: '405W',
     efficiency: '21.1%',
     features: ['Multi-busbar technology', 'Half-cut cell design', 'Excellent value'],
+    warranty: '15-year product, 25-year performance',
   },
   {
     id: 'sol6',
@@ -74,5 +79,6 @@ export const solarSolutions: SolarSolution[] = [
     powerOutput: '335W',
     efficiency: '19.9%',
     features: ['Shingled cell technology', 'Enhanced shade tolerance', 'Durable construction'],
+    warranty: '25-year complete confidence warranty',
   },
 ];

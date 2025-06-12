@@ -14,4 +14,5 @@ export interface SolarSolution {
   powerOutput?: string;
   efficiency?: string;
   features?: string[];
+  warranty?: string; // Added warranty field
 }
