@@ -1,8 +1,10 @@
+
 import Image from 'next/image';
 import type { SolarSolution } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tag, Zap, CheckCircle, Building2, ShieldCheck } from 'lucide-react';
+import { Tag, Zap, CheckCircle, Building2, ShieldCheck, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 interface SolarSolutionCardProps {
   solution: SolarSolution;
@@ -64,8 +66,11 @@ export function SolarSolutionCard({ solution }: SolarSolutionCardProps) {
         </div>
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <Button variant="default" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-          Learn More
+        <Button asChild variant="default" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Link href={`/solutions/${solution.id}`}>
+            View Details
+            <ExternalLink className="ml-2 h-4 w-4" />
+          </Link>
         </Button>
       </CardFooter>
     </Card>
