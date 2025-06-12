@@ -36,6 +36,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger, // Added AlertDialogTrigger here
 } from '@/components/ui/alert-dialog';
 import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
 import { CompanyForm } from './CompanyForm';
