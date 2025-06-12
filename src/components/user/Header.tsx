@@ -18,9 +18,6 @@ export function UserHeader() {
           <Button variant="ghost" asChild>
             <Link href="/#contact">Contact</Link>
           </Button>
-          <Button variant="outline" asChild className="hidden sm:flex">
-            <Link href="/admin">Admin Portal</Link>
-          </Button>
            <Button variant="ghost" size="icon" asChild>
             <Link href="/profile"> {/* Placeholder for user profile/login */}
               <UserCircle className="h-6 w-6" />
