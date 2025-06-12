@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -11,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function HomePage() {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function HomePage() {
               priority
             />
           </div>
-          <div className="container relative z-10 mx-auto text-center">
+          <div className="container relative z-10 mx-auto text-center px-4">
             <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl font-bold mb-6">
               Power Your Future with Zawa Energy
             </h1>
@@ -63,7 +65,7 @@ export default function HomePage() {
 
         {/* Solutions Catalog Section */}
         <section id="solutions" className="py-16">
-          <div className="container mx-auto">
+          <div className="container mx-auto px-4">
             <h2 className="font-headline text-3xl font-semibold text-center mb-4">Our Solar Solutions</h2>
             <p className="text-center text-muted-foreground mb-12 max-w-xl mx-auto">
               Browse our curated selection of high-quality solar panels and systems from leading manufacturers.
@@ -106,7 +108,7 @@ export default function HomePage() {
 
         {/* About Us Section (Placeholder) */}
         <section id="about" className="py-16 bg-muted/30">
-          <div className="container mx-auto text-center">
+          <div className="container mx-auto text-center px-4">
             <h2 className="font-headline text-3xl font-semibold mb-4">About Zawa Energy Hub</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
               We are dedicated to providing accessible and affordable solar energy solutions to help you reduce your carbon footprint and save on energy costs. Our team of experts is passionate about renewable energy and committed to delivering excellence.
@@ -117,13 +119,13 @@ export default function HomePage() {
 
         {/* Contact Section (Placeholder) */}
         <section id="contact" className="py-16">
-          <div className="container mx-auto text-center">
+          <div className="container mx-auto text-center px-4">
             <h2 className="font-headline text-3xl font-semibold mb-4">Get in Touch</h2>
             <p className="text-muted-foreground max-w-xl mx-auto mb-6">
               Have questions or need a custom quote? Contact our friendly team today.
             </p>
-            <Button variant="default" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-              Contact Us
+            <Button variant="default" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+              <Link href="/contact">Contact Us</Link>
             </Button>
           </div>
         </section>
