@@ -10,6 +10,8 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
 } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 
@@ -47,11 +49,13 @@ export function UserHeader() {
                 <span className="sr-only">Open navigation menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] p-0">
-              <div className="flex flex-col h-full">
-                <div className="p-6 border-b">
+            <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>
                   <Logo />
-                </div>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex-grow overflow-y-auto">
                 <nav className="flex flex-col gap-1 p-4">
                   <SheetClose asChild>
                     <Link
@@ -78,18 +82,18 @@ export function UserHeader() {
                     </Link>
                   </SheetClose>
                 </nav>
-                <Separator />
-                <div className="p-4 mt-auto">
-                  <SheetClose asChild>
-                    <Link
-                      href="/profile"
-                      className="flex items-center gap-3 px-3 py-2 text-base rounded-md hover:bg-muted"
-                    >
-                      <UserCircle className="h-5 w-5" />
-                      Profile
-                    </Link>
-                  </SheetClose>
-                </div>
+              </div>
+              <Separator />
+              <div className="p-4 border-t">
+                <SheetClose asChild>
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 px-3 py-2 text-base rounded-md hover:bg-muted"
+                  >
+                    <UserCircle className="h-5 w-5" />
+                    Profile
+                  </Link>
+                </SheetClose>
               </div>
             </SheetContent>
           </Sheet>
