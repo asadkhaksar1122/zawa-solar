@@ -32,11 +32,11 @@ export function UserHeader() {
           <Button variant="ghost" asChild>
             <Link href="/contact">Contact</Link>
           </Button>
-          <Button variant="ghost" size="icon" asChild>
-            <Link href="/profile"> {/* Placeholder for user profile/login */}
-              <UserCircle className="h-6 w-6" />
-              <span className="sr-only">User Profile</span>
-            </Link>
+          <Button variant="ghost" asChild>
+            <Link href="/auth/login">Login</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/auth/signup">Sign Up</Link>
           </Button>
         </nav>
 
@@ -84,15 +84,16 @@ export function UserHeader() {
                 </nav>
               </div>
               <Separator />
-              <div className="p-4 border-t">
+              <div className="p-4 border-t space-y-2">
                 <SheetClose asChild>
-                  <Link
-                    href="/profile"
-                    className="flex items-center gap-3 px-3 py-2 text-base rounded-md hover:bg-muted"
-                  >
-                    <UserCircle className="h-5 w-5" />
-                    Profile
-                  </Link>
+                  <Button variant="outline" className="w-full" asChild>
+                    <Link href="/auth/login">Login</Link>
+                  </Button>
+                </SheetClose>
+                <SheetClose asChild>
+                  <Button className="w-full" asChild>
+                     <Link href="/auth/signup">Sign Up</Link>
+                  </Button>
                 </SheetClose>
               </div>
             </SheetContent>
