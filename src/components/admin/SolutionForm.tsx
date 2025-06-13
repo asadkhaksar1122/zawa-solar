@@ -46,7 +46,7 @@ interface SolutionFormProps {
 
 export function SolutionForm({ solution, companies, onFormSubmit }: SolutionFormProps) {
   const router = useRouter();
-  const companyMap = new Map(companies.map(c => [c.id, c.name]));
+  const companyMap = new Map(companies.map(c => [c._id, c.name]));
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileDataUri, setFileDataUri] = useState<string | null>(
@@ -187,7 +187,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
     
     let result;
     if (solution) {
-      result = await updateSolarSolution(solution.id, formDataObj);
+      result = await updateSolarSolution(solution._id, formDataObj);
     } else {
       result = await addSolarSolution(formDataObj);
     }
@@ -242,7 +242,7 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
                 </FormControl>
                 <SelectContent>
                   {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
+                    <SelectItem key={company._id} value={company._id}>
                       {company.name}
                     </SelectItem>
                   ))}

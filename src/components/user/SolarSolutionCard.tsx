@@ -67,7 +67,7 @@ export function SolarSolutionCard({ solution }: SolarSolutionCardProps) {
       </CardContent>
       <CardFooter className="p-6 pt-0">
         <Button asChild variant="default" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
-          <Link href={`/solutions/${solution.id}`}>
+          <Link href={`/solutions/${solution._id}`}>
             View Details
             <ExternalLink className="ml-2 h-4 w-4" />
           </Link>

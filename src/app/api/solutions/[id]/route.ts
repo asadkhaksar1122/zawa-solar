@@ -7,8 +7,8 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = params;
-  const solution = solarSolutions.find((s) => s.id === id);
+  const { id } = params; // This 'id' is the route parameter value
+  const solution = solarSolutions.find((s) => s._id === id);
 
   if (solution) {
     return NextResponse.json<SolarSolution>(solution);

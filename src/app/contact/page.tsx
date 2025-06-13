@@ -90,7 +90,7 @@ export default function ContactPage() {
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
                   {contactSettings.whatsappNumbers.map(wa => (
-                    <Button key={wa.id} asChild size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white">
+                    <Button key={wa._id} asChild size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white">
                       <Link href={`https://wa.me/${wa.value.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
                         Chat on {wa.value}
                       </Link>
@@ -114,7 +114,7 @@ export default function ContactPage() {
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
                   {contactSettings.emailAddresses.map(email => (
-                    <Button key={email.id} asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+                    <Button key={email._id} asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
                       <Link href={`mailto:${email.value}`}>
                         Email {email.value}
                       </Link>
@@ -138,7 +138,7 @@ export default function ContactPage() {
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
                     {contactSettings.phoneNumbers.map(phone => (
-                      <Button key={phone.id} asChild size="lg" className="w-full">
+                      <Button key={phone._id} asChild size="lg" className="w-full">
                         <Link href={`tel:${phone.value}`}>
                           Call {phone.value}
                         </Link>

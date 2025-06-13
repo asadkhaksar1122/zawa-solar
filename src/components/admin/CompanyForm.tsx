@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,7 +50,7 @@ export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
     
     let result;
     if (company) {
-      result = await updateCompany(company.id, formData);
+      result = await updateCompany(company._id, formData);
     } else {
       result = await addCompany(formData);
     }

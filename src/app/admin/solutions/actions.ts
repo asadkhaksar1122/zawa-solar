@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { SolarSolution } from '@/lib/types';
@@ -8,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 export async function addSolarSolution(formData: FormData): Promise<{ success: boolean; message: string; solution?: SolarSolution }> {
   // Simulate data processing
   const newSolution: SolarSolution = {
-    id: `sol-${Date.now()}`, // Temporary ID
+    _id: `sol-${Date.now()}`, // Temporary ID
     name: formData.get('name') as string,
     company: formData.get('company') as string,
     companyId: formData.get('companyId') as string,
@@ -44,19 +45,19 @@ export async function updateSolarSolution(solutionId: string, formData: FormData
   
   console.log(`Updating solar solution ${solutionId}:`, updatedSolution);
   // Simulate database operation
-  // const index = solarSolutions.findIndex(s => s.id === solutionId);
+  // const index = solarSolutions.findIndex(s => s._id === solutionId);
   // if (index !== -1) solarSolutions[index] = { ...solarSolutions[index], ...updatedSolution };
 
 
   revalidatePath('/admin/solutions');
   revalidatePath('/');
-  return { success: true, message: 'Solar solution updated successfully.', solution: {id: solutionId, ...updatedSolution} as SolarSolution };
+  return { success: true, message: 'Solar solution updated successfully.', solution: {_id: solutionId, ...updatedSolution} as SolarSolution };
 }
 
 export async function deleteSolarSolution(solutionId: string): Promise<{ success: boolean; message: string }> {
   console.log('Deleting solar solution:', solutionId);
   // Simulate database operation
-  // solarSolutions = solarSolutions.filter(s => s.id !== solutionId);
+  // solarSolutions = solarSolutions.filter(s => s._id !== solutionId);
 
   revalidatePath('/admin/solutions');
   revalidatePath('/');

@@ -31,27 +31,27 @@ export default function ContactSettingsPage() {
     setSettings(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleItemChange = (listName: keyof ContactSettings, id: string, value: string) => {
+  const handleItemChange = (listName: keyof ContactSettings, itemId: string, value: string) => {
     setSettings(prev => ({
       ...prev,
       [listName]: (prev[listName] as ContactItem[]).map(item =>
-        item.id === id ? { ...item, value } : item
+        item._id === itemId ? { ...item, value } : item
       ),
     }));
   };
 
   const addItem = (listName: keyof ContactSettings) => {
-    const newItem: ContactItem = { id: `${listName.slice(0,2)}-${Date.now()}`, value: '' };
+    const newItem: ContactItem = { _id: `${listName.slice(0,2)}-${Date.now()}`, value: '' };
     setSettings(prev => ({
       ...prev,
       [listName]: [...(prev[listName] as ContactItem[]), newItem],
     }));
   };
 
-  const removeItem = (listName: keyof ContactSettings, id: string) => {
+  const removeItem = (listName: keyof ContactSettings, itemId: string) => {
     setSettings(prev => ({
       ...prev,
-      [listName]: (prev[listName] as ContactItem[]).filter(item => item.id !== id),
+      [listName]: (prev[listName] as ContactItem[]).filter(item => item._id !== itemId),
     }));
   };
 
@@ -74,15 +74,15 @@ export default function ContactSettingsPage() {
   const renderItemList = (listName: keyof Pick<ContactSettings, 'whatsappNumbers' | 'emailAddresses' | 'phoneNumbers'>, itemType: string) => (
     <div className="space-y-3">
       {(settings[listName] as ContactItem[]).map((item, index) => (
-        <div key={item.id} className="flex items-center gap-2">
+        <div key={item._id} className="flex items-center gap-2">
           <Input
             type={itemType === 'email' ? 'email' : itemType === 'phone' ? 'tel' : 'text'}
             placeholder={`Enter ${itemType} #${index + 1}`}
             value={item.value}
-            onChange={(e) => handleItemChange(listName, item.id, e.target.value)}
+            onChange={(e) => handleItemChange(listName, item._id, e.target.value)}
             className="flex-grow"
           />
-          <Button variant="ghost" size="icon" onClick={() => removeItem(listName, item.id)} aria-label={`Remove ${itemType}`}>
+          <Button variant="ghost" size="icon" onClick={() => removeItem(listName, item._id)} aria-label={`Remove ${itemType}`}>
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
         </div>

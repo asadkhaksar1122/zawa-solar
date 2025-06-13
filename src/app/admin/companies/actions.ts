@@ -1,3 +1,4 @@
+
 'use server';
 
 import type { Company } from '@/lib/types';
@@ -9,7 +10,7 @@ import { revalidatePath } from 'next/cache';
 
 export async function addCompany(formData: FormData): Promise<{ success: boolean; message: string; company?: Company }> {
   const newCompany: Company = {
-    id: `comp-${Date.now()}`, // Temporary ID
+    _id: `comp-${Date.now()}`, // Temporary ID
     name: formData.get('name') as string,
   };
 
@@ -32,7 +33,7 @@ export async function updateCompany(companyId: string, formData: FormData): Prom
 
   revalidatePath('/admin/companies');
   revalidatePath('/admin/solutions');
-  return { success: true, message: 'Company updated successfully (simulated).', company: {id: companyId, ...updatedCompanyData} as Company };
+  return { success: true, message: 'Company updated successfully (simulated).', company: {_id: companyId, ...updatedCompanyData} as Company };
 }
 
 export async function deleteCompany(companyId: string): Promise<{ success: boolean; message: string }> {

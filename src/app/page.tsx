@@ -130,7 +130,7 @@ export default function HomePage() {
                 ) : filteredSolutions.length > 0 ? (
                   <div className="grid sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredSolutions.map((solution) => (
-                      <SolarSolutionCard key={solution.id} solution={solution} />
+                      <SolarSolutionCard key={solution._id} solution={solution} />
                     ))}
                   </div>
                 ) : (

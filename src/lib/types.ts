@@ -1,14 +1,15 @@
+
 export interface Company {
-  id: string;
+  _id: string;
   name: string;
   // Add other relevant fields like logoUrl, description if needed in the future
 }
 
 export interface SolarSolution {
-  id: string;
+  _id: string;
   name:string;
   company: string; 
-  companyId: string; // This ID should correspond to a Company's id
+  companyId: string; // This ID should correspond to a Company's _id
   description: string;
   imageUrl: string;
   powerOutput?: string;
@@ -19,7 +20,7 @@ export interface SolarSolution {
 
 // New types for Contact Settings
 export interface ContactItem {
-  id: string; // For React keys, can be temp, e.g., uuid or timestamp based
+  _id: string; // For React keys, can be temp, e.g., uuid or timestamp based
   value: string;
 }
 

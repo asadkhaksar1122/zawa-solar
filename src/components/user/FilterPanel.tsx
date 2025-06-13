@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Company } from '@/lib/types'; // Renamed CompanyCategory to Company
@@ -31,7 +32,7 @@ export function FilterPanel({ categories, selectedCategory, onCategoryChange }: 
               <SelectContent>
                 <SelectItem value="all">All Companies</SelectItem>
                 {categories.map((company) => ( // Iterate over 'companies' (passed as categories)
-                  <SelectItem key={company.id} value={company.id}>
+                  <SelectItem key={company._id} value={company._id}>
                     {company.name}
                   </SelectItem>
                 ))}

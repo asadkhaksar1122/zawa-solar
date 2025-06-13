@@ -1,18 +1,19 @@
+
 import type { SolarSolution, Company, ContactSettings } from './types';
 
 export const companies: Company[] = [
-  { id: 'comp1', name: 'SunPower' },
-  { id: 'comp2', name: 'LG Solar' },
-  { id: 'comp3', name: 'Panasonic' },
-  { id: 'comp4', name: 'Canadian Solar' },
-  { id: 'comp5', name: 'Trina Solar' },
+  { _id: 'comp1', name: 'SunPower' },
+  { _id: 'comp2', name: 'LG Solar' },
+  { _id: 'comp3', name: 'Panasonic' },
+  { _id: 'comp4', name: 'Canadian Solar' },
+  { _id: 'comp5', name: 'Trina Solar' },
   // Add a new example company
-  { id: 'comp6', name: 'JA Solar' },
+  { _id: 'comp6', name: 'JA Solar' },
 ];
 
 export const solarSolutions: SolarSolution[] = [
   {
-    id: 'sol1',
+    _id: 'sol1',
     name: 'Maxeon 3 Series Panel',
     company: 'SunPower',
     companyId: 'comp1',
@@ -24,7 +25,7 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '25-year product & performance',
   },
   {
-    id: 'sol2',
+    _id: 'sol2',
     name: 'NeON R ACe Solar Panel',
     company: 'LG Solar',
     companyId: 'comp2',
@@ -36,7 +37,7 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '25-year product & performance',
   },
   {
-    id: 'sol3',
+    _id: 'sol3',
     name: 'EverVolt EVPV370 Panel',
     company: 'Panasonic',
     companyId: 'comp3',
@@ -48,7 +49,7 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '25-year AllGuard warranty',
   },
   {
-    id: 'sol4',
+    _id: 'sol4',
     name: 'HiKu6 CS6W Panel',
     company: 'Canadian Solar',
     companyId: 'comp4',
@@ -60,7 +61,7 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '12-year product, 25-year performance',
   },
   {
-    id: 'sol5',
+    _id: 'sol5',
     name: 'Vertex S Series',
     company: 'Trina Solar',
     companyId: 'comp5',
@@ -72,7 +73,7 @@ export const solarSolutions: SolarSolution[] = [
     warranty: '15-year product, 25-year performance',
   },
   {
-    id: 'sol6',
+    _id: 'sol6',
     name: 'Performance 3 Panel',
     company: 'SunPower',
     companyId: 'comp1',
@@ -88,9 +89,9 @@ export const solarSolutions: SolarSolution[] = [
 // In a real app, this would come from a database or a persistent store.
 // For this prototype, it's in-memory.
 export let contactSettingsData: ContactSettings = {
-  whatsappNumbers: [{ id: `wa-${Date.now()}`, value: '+1122334455' }],
-  emailAddresses: [{ id: `em-${Date.now()}`, value: 'info@zawaenergy.com' }],
-  phoneNumbers: [{ id: `ph-${Date.now()}`, value: '+1 (555) 123-4567' }],
+  whatsappNumbers: [{ _id: `wa-${Date.now()}`, value: '+1122334455' }],
+  emailAddresses: [{ _id: `em-${Date.now()}`, value: 'info@zawaenergy.com' }],
+  phoneNumbers: [{ _id: `ph-${Date.now()}`, value: '+1 (555) 123-4567' }],
   facebookUrl: 'https://www.facebook.com/zawaenergy',
   officeAddress: '123 Solar Street, Energy City, EC 12345, Powerland',
 };

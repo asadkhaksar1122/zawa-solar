@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -98,7 +99,7 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
         </TableHeader>
         <TableBody>
           {companies.map((company) => (
-            <TableRow key={company.id}>
+            <TableRow key={company._id}>
               <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -129,7 +130,7 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(company.id, company.name)} variant="destructive">
+                          <AlertDialogAction onClick={() => handleDelete(company._id, company.name)} variant="destructive">
                             Continue
                           </AlertDialogAction>
                         </AlertDialogFooter>

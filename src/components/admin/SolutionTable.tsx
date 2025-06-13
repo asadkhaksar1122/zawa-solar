@@ -103,7 +103,7 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
         </TableHeader>
         <TableBody>
           {solutions.map((solution) => (
-            <TableRow key={solution.id}>
+            <TableRow key={solution._id}>
               <TableCell className="hidden sm:table-cell">
                 <Image
                   alt={solution.name}
@@ -148,7 +148,7 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(solution.id)} variant="destructive">
+                          <AlertDialogAction onClick={() => handleDelete(solution._id)} variant="destructive">
                             Continue
                           </AlertDialogAction>
                         </AlertDialogFooter>
