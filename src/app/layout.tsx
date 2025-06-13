@@ -2,6 +2,7 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { ReduxProvider } from '@/lib/redux/ReduxProvider';
+import { NextAuthProvider } from './NextAuthProvider'; // We'll create this next
 
 export const metadata: Metadata = {
   title: 'Zawa Energy Hub',
@@ -22,9 +23,11 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <ReduxProvider>
-          {children}
-        </ReduxProvider>
+        <NextAuthProvider>
+          <ReduxProvider>
+            {children}
+          </ReduxProvider>
+        </NextAuthProvider>
       </body>
     </html>
   );

@@ -24,6 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import Swal from 'sweetalert2';
+import { useRouter } from 'next/navigation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react';
 
 const signupFormSchema = z
   .object({
@@ -42,12 +46,15 @@ const signupFormSchema = z
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match.",
-    path: ['confirmPassword'], // Point error to confirmPassword field
+    path: ['confirmPassword'],
   });
 
 type SignupFormValues = z.infer<typeof signupFormSchema>;
 
 export default function SignupPage() {
+  const router = useRouter();
+  const [customError, setCustomError] = useState<string | null>(null);
+
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
@@ -58,10 +65,49 @@ export default function SignupPage() {
     },
   });
 
-  function onSubmit(data: SignupFormValues) {
-    console.log('Sign Up data:', data);
-    // Here you would typically call your backend API to register the user
-    // For now, we just log to console
+  async function onSubmit(data: SignupFormValues) {
+    setCustomError(null);
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: data.fullName,
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setCustomError(result.message || 'An error occurred during sign up.');
+        Swal.fire({
+          icon: 'error',
+          title: 'Sign Up Failed',
+          text: result.message || 'An error occurred.',
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sign Up Successful!',
+          text: 'You can now log in with your credentials.',
+        }).then(() => {
+          router.push('/auth/login');
+        });
+      }
+    } catch (error) {
+      console.error('Sign up error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
+      setCustomError(errorMessage);
+      Swal.fire({
+        icon: 'error',
+        title: 'Sign Up Error',
+        text: errorMessage,
+      });
+    }
   }
 
   return (
@@ -73,6 +119,11 @@ export default function SignupPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {customError && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{customError}</AlertDescription>
+          </Alert>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

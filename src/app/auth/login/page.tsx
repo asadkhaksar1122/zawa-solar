@@ -24,6 +24,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Swal from 'sweetalert2';
+import { useState } from 'react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const loginFormSchema = z.object({
   email: z
@@ -31,12 +36,19 @@ const loginFormSchema = z.object({
     .email({ message: 'Please enter a valid email address.' }),
   password: z
     .string()
-    .min(1, { message: 'Password is required.' }), // Basic check, adjust as needed
+    .min(1, { message: 'Password is required.' }),
 });
 
 type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 export default function LoginPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const error = searchParams.get('error');
+  const [customError, setCustomError] = useState<string | null>(null);
+
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -45,10 +57,41 @@ export default function LoginPage() {
     },
   });
 
-  function onSubmit(data: LoginFormValues) {
-    console.log('Login data:', data);
-    // Here you would typically call your backend API to log in the user
-    // For now, we just log to console
+  async function onSubmit(data: LoginFormValues) {
+    setCustomError(null); // Clear previous custom errors
+    const result = await signIn('credentials', {
+      redirect: false, // We'll handle redirect manually
+      email: data.email,
+      password: data.password,
+      callbackUrl: callbackUrl,
+    });
+
+    if (result?.error) {
+      // Handle errors returned by NextAuth.js (e.g., "CredentialsSignin")
+      // Or custom errors from your authorize function
+      console.error('Login failed:', result.error);
+      if (result.error === 'CredentialsSignin') {
+        setCustomError('Invalid email or password. Please try again.');
+      } else {
+        setCustomError(result.error);
+      }
+       Swal.fire({
+         icon: 'error',
+         title: 'Login Failed',
+         text: result.error === 'CredentialsSignin' ? 'Invalid email or password.' : result.error,
+       });
+    } else if (result?.ok) {
+      // Login successful
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Successful!',
+        timer: 1500,
+        showConfirmButton: false,
+      }).then(() => {
+        router.push(callbackUrl); // Redirect to the intended page or dashboard
+        router.refresh(); // Refresh to update session state in header
+      });
+    }
   }
 
   return (
@@ -60,6 +103,13 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {(error || customError) && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>
+              {customError || 'Login failed. Please check your credentials.'}
+            </AlertDescription>
+          </Alert>
+        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

@@ -1,15 +1,36 @@
 
+// Add NextAuth types
+import type { DefaultSession, User as NextAuthUser } from 'next-auth';
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      _id?: string | null; // Or id, depending on what you set in session callback
+    } & DefaultSession['user']; // Keep existing user properties like name, email, image
+  }
+
+  // If you are using JWT strategy, you might want to extend the JWT token type
+  // interface JWT {
+  //   _id?: string;
+  // }
+
+  // Extend the default User model if needed (e.g., if your DB user model has more fields)
+  // interface User extends NextAuthUser {
+  //   // your custom fields here
+  // }
+}
+
+
 export interface Company {
   _id: string;
   name: string;
-  // Add other relevant fields like logoUrl, description if needed in the future
 }
 
 export interface SolarSolution {
   _id: string;
   name:string;
-  company: string; 
-  companyId: string; // This ID should correspond to a Company's _id
+  company: string;
+  companyId: string;
   description: string;
   imageUrl: string;
   powerOutput?: string;
@@ -18,9 +39,8 @@ export interface SolarSolution {
   warranty?: string;
 }
 
-// New types for Contact Settings
 export interface ContactItem {
-  _id: string; // For React keys, can be temp, e.g., uuid or timestamp based
+  _id: string;
   value: string;
 }
 
