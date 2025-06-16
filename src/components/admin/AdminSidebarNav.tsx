@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Box, Building, Settings, Phone } from 'lucide-react'; // Added Building and Phone icons
+import { LayoutDashboard, Box, Building, Settings, Phone, Users } from 'lucide-react'; // Added Users icon
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/solutions', label: 'Solar Solutions', icon: Box },
   { href: '/admin/companies', label: 'Companies', icon: Building },
   { href: '/admin/contact-settings', label: 'Contact Settings', icon: Phone },
+  { href: '/admin/users', label: 'Manage Users', icon: Users }, // New item
   // { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
