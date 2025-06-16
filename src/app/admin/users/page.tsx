@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useActionState, useEffect, useState } from 'react'; // Changed import
-import { useFormState as useReactHookFormState, useFormStatus } from 'react-dom'; // Keep react-dom's useFormStatus
+import { useActionState, useEffect, useState, useTransition } from 'react'; // Changed import
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -40,19 +39,21 @@ const initialState = {
   success: false,
 };
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
+// Updated SubmitButton to take isPending prop
+function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <Button type="submit" disabled={pending} className="w-full sm:w-auto">
-      {pending ? 'Processing...' : 'Make Admin'}
+    <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+      {isPending ? 'Processing...' : 'Make Admin'}
     </Button>
   );
 }
 
 export default function ManageUsersPage() {
-  const [formState, dispatchMakeUserAdminAction] = useActionState(makeUserAdminAction, initialState); // Updated hook
+  // Correctly destructure useActionState to get isPending
+  const [formState, dispatchMakeUserAdminAction, isActionPending] = useActionState(makeUserAdminAction, initialState);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [, startTransition] = useTransition(); // For wrapping the action dispatch
 
   const form = useForm<MakeAdminFormValues>({
     resolver: zodResolver(makeAdminFormSchema),
@@ -82,7 +83,11 @@ export default function ManageUsersPage() {
     setShowErrorAlert(false);
     const formData = new FormData();
     formData.append('email', data.email);
-    dispatchMakeUserAdminAction(formData);
+    
+    // Wrap the action dispatch in startTransition
+    startTransition(() => {
+      dispatchMakeUserAdminAction(formData);
+    });
   };
 
 
@@ -131,7 +136,8 @@ export default function ManageUsersPage() {
               />
             </CardContent>
             <CardFooter>
-              <SubmitButton />
+              {/* Pass isActionPending to SubmitButton */}
+              <SubmitButton isPending={isActionPending} />
             </CardFooter>
           </form>
         </Form>
