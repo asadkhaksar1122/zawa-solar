@@ -1,6 +1,8 @@
+
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState, useEffect, useState } from 'react'; // Changed import
+import { useFormState as useReactHookFormState, useFormStatus } from 'react-dom'; // Keep react-dom's useFormStatus
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -25,7 +27,6 @@ import {
 } from '@/components/ui/form';
 import { makeUserAdminAction } from './actions';
 import Swal from 'sweetalert2';
-import { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const makeAdminFormSchema = z.object({
@@ -49,7 +50,7 @@ function SubmitButton() {
 }
 
 export default function ManageUsersPage() {
-  const [formState, dispatchMakeUserAdminAction] = useFormState(makeUserAdminAction, initialState);
+  const [formState, dispatchMakeUserAdminAction] = useActionState(makeUserAdminAction, initialState); // Updated hook
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
 
