@@ -29,9 +29,10 @@ type CompanyFormValues = z.infer<typeof companyFormSchema>;
 interface CompanyFormProps {
   company?: Company | null;
   onFormSubmit?: () => void; // Callback to close dialog or navigate
+  imageUrl?: string; // Added to receive the Cloudinary image URL
 }
 
-export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
+export function CompanyForm({ company, onFormSubmit, imageUrl }: CompanyFormProps) {
   const router = useRouter();
 
   const defaultValues: Partial<CompanyFormValues> = company
@@ -47,6 +48,11 @@ export function CompanyForm({ company, onFormSubmit }: CompanyFormProps) {
   async function onSubmit(data: CompanyFormValues) {
     const formData = new FormData();
     formData.append('name', data.name);
+    
+    // Add the image URL to the form data if available
+    if (imageUrl) {
+      formData.append('logoUrl', imageUrl);
+    }
     
     let result;
     if (company) {

@@ -12,6 +12,7 @@ export async function addCompany(formData: FormData): Promise<{ success: boolean
   const newCompany: Company = {
     _id: `comp-${Date.now()}`, // Temporary ID
     name: formData.get('name') as string,
+    logoUrl: formData.get('logoUrl') as string || undefined,
   };
 
   console.log('Adding company:', newCompany);
@@ -26,6 +27,7 @@ export async function addCompany(formData: FormData): Promise<{ success: boolean
 export async function updateCompany(companyId: string, formData: FormData): Promise<{ success: boolean; message: string; company?: Company }> {
    const updatedCompanyData: Partial<Company> = {
     name: formData.get('name') as string,
+    logoUrl: formData.get('logoUrl') as string || undefined,
   };
   
   console.log(`Updating company ${companyId}:`, updatedCompanyData);

@@ -24,6 +24,7 @@ declare module 'next-auth' {
 export interface Company {
   _id: string;
   name: string;
+  logoUrl?: string;
 }
 
 export interface SolarSolution {

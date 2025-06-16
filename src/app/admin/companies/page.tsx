@@ -25,9 +25,11 @@ import { CompanyForm } from '@/components/admin/CompanyForm';
 import { companies as initialCompanies } from '@/lib/data'; // Using mock data
 import type { Company } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { CldUploadWidget } from 'next-cloudinary';
 
 export default function AdminCompaniesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>('');
   const router = useRouter();
 
   // For this prototype, we use the static mock data directly.
@@ -37,6 +39,11 @@ export default function AdminCompaniesPage() {
   const handleFormSubmit = () => {
     setIsAddModalOpen(false);
     router.refresh(); 
+  };
+  
+  const handleUploadSuccess = (result: any) => {
+    setImageUrl(result.info.secure_url);
+    console.log('Upload success:', result.info.secure_url);
   };
 
   return (
@@ -57,7 +64,41 @@ export default function AdminCompaniesPage() {
                 Fill in the details for the new company.
               </DialogDescription>
             </DialogHeader>
-            <CompanyForm onFormSubmit={handleFormSubmit} />
+            
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <label className="font-medium">Company Logo</label>
+                <div className="flex items-center gap-4">
+                  {imageUrl && (
+                    <div className="relative h-24 w-24 overflow-hidden rounded-md border">
+                      <img 
+                        src={imageUrl} 
+                        alt="Company logo" 
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  <CldUploadWidget 
+                    uploadPreset="company_logos"
+                    onSuccess={handleUploadSuccess}
+                  >
+                    {({ open }) => (
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={() => open()}
+                      >
+                        {imageUrl ? 'Change Logo' : 'Upload Logo'}
+                      </Button>
+                    )}
+                  </CldUploadWidget>
+                </div>
+              </div>
+              
+              <CompanyForm onFormSubmit={handleFormSubmit} imageUrl={imageUrl} />
+            </div>
+            
             <DialogFooter>
                 <DialogClose asChild>
                     <Button variant="outline">Cancel</Button>
