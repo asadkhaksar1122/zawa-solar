@@ -67,19 +67,11 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      // Handle errors returned by NextAuth.js (e.g., "CredentialsSignin")
-      // Or custom errors from your authorize function
-      console.error('Login failed:', result.error);
       if (result.error === 'CredentialsSignin') {
         setCustomError('Invalid email or password. Please try again.');
       } else {
-        setCustomError(result.error);
+        setCustomError('Login failed. Please try again.');
       }
-       Swal.fire({
-         icon: 'error',
-         title: 'Login Failed',
-         text: result.error === 'CredentialsSignin' ? 'Invalid email or password.' : result.error,
-       });
     } else if (result?.ok) {
       // Login successful
       Swal.fire({

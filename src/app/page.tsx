@@ -33,8 +33,8 @@ export default function HomePage() {
       const matchesCategory = selectedCompanyId ? solution.companyId === selectedCompanyId : true;
       const matchesSearch = searchTerm
         ? solution.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          solution.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          solution.description.toLowerCase().includes(searchTerm.toLowerCase())
+        solution.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        solution.description.toLowerCase().includes(searchTerm.toLowerCase())
         : true;
       return matchesCategory && matchesSearch;
     });
@@ -48,9 +48,9 @@ export default function HomePage() {
         <section className="relative py-20 md:py-32 bg-gradient-to-br from-primary to-blue-400 text-primary-foreground">
           <div className="absolute inset-0">
             <Image
-              src="https://placehold.co/1920x1080.png"
+              src="https://i.pinimg.com/736x/11/87/0f/11870f17a2386a6f021649c40b68fd16.jpg"
               alt="Solar panels background"
-              fill 
+              fill
               objectFit="cover"
               className="opacity-30"
               data-ai-hint="solar panels landscape"
@@ -86,7 +86,7 @@ export default function HomePage() {
                     <CardContent><Skeleton className="h-10 w-full" /></CardContent>
                   </Card>
                 ) : companiesError ? (
-                   <p className="text-destructive">Failed to load companies.</p>
+                  <p className="text-destructive">Failed to load companies.</p>
                 ) : (
                   <FilterPanel
                     categories={companyList}
@@ -118,7 +118,7 @@ export default function HomePage() {
                           <Skeleton className="h-4 w-full" />
                         </CardContent>
                         <CardFooter className="p-6 pt-0">
-                           <Skeleton className="h-10 w-full" />
+                          <Skeleton className="h-10 w-full" />
                         </CardFooter>
                       </Card>
                     ))}

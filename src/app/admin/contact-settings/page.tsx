@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,23 +7,37 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Trash2, PlusCircle } from 'lucide-react';
 import type { ContactSettings, ContactItem } from '@/lib/types';
-import { contactSettingsData as initialContactSettings } from '@/lib/data'; // For initial state
-import { updateContactSettings } from './actions';
+import { contactSettingsData } from '@/lib/data';
 import Swal from 'sweetalert2';
+import { useGetContactSettingsQuery, usePutContactSettingsMutation } from '@/lib/redux/api/contactApi';
+import { FetchBaseQueryError } from '@reduxjs/toolkit/query';
+import { SerializedError } from '@reduxjs/toolkit';
+
+// Type for API error response
+interface ApiError {
+  data?: {
+    message?: string;
+  };
+  status?: number;
+}
 
 export default function ContactSettingsPage() {
-  const [settings, setSettings] = useState<ContactSettings>(initialContactSettings);
-  const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<ContactSettings>(contactSettingsData);
 
-  // For a real app with a DB, you might fetch initial settings here.
-  // useEffect(() => {
-  //   // async function fetchSettings() {
-  //   //   const fetched = await getContactSettingsFromDB(); // Fictional function
-  //   //   setSettings(fetched);
-  //   // }
-  //   // fetchSettings();
-  //   setSettings(initialContactSettings); // Using mock data for now
-  // }, []);
+  const { data, isLoading, error } = useGetContactSettingsQuery();
+  const [putContactSettings, { isLoading: isupdating, error: updateerror }] = usePutContactSettingsMutation();
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (data && data[0]) {
+      setSettings({
+        ...data[0],
+        whatsappNumbers: (data[0].whatsappNumbers || []).map((item: any) => ({ _id: item._id, value: item.number || item.value })),
+        emailAddresses: (data[0].emailAddresses || []).map((item: any) => ({ _id: item._id, value: item.number || item.value })),
+        phoneNumbers: (data[0].phoneNumbers || []).map((item: any) => ({ _id: item._id, value: item.number || item.value })),
+      });
+    }
+  }, [data, isLoading]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -41,7 +54,7 @@ export default function ContactSettingsPage() {
   };
 
   const addItem = (listName: keyof ContactSettings) => {
-    const newItem: ContactItem = { _id: `${listName.slice(0,2)}-${Date.now()}`, value: '' };
+    const newItem: ContactItem = { _id: `${listName.slice(0, 2)}-${Date.now()}`, value: '' };
     setSettings(prev => ({
       ...prev,
       [listName]: [...(prev[listName] as ContactItem[]), newItem],
@@ -57,21 +70,47 @@ export default function ContactSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    const result = await updateContactSettings(settings);
-    setIsLoading(false);
-    if (result.success) {
-      Swal.fire('Success!', result.message, 'success');
-      if (result.settings) {
-        // Update local state if server returns updated settings (good practice)
-        setSettings(result.settings);
+
+    const payload = {
+      id: settings._id,
+      whatsappNumbers: settings.whatsappNumbers.map(({ _id, value }) => ({ value })),
+      emailAddresses: settings.emailAddresses.map(({ _id, value }) => ({ value })),
+      phoneNumbers: settings.phoneNumbers.map(({ _id, value }) => ({ value })),
+      facebookUrl: settings.facebookUrl,
+      officeAddress: settings.officeAddress,
+    };
+
+    try {
+      const result = await putContactSettings(payload).unwrap();
+      Swal.fire('Success!', 'Contact settings updated successfully.', 'success');
+      if (result) {
+        setSettings(prev => ({
+          ...prev,
+          ...result,
+          whatsappNumbers: (result.whatsappNumbers || []).map((item: any) => ({ _id: item._id, value: item.number })),
+          emailAddresses: (result.emailAddresses || []).map((item: any) => ({ _id: item._id, value: item.number })),
+          phoneNumbers: (result.phoneNumbers || []).map((item: any) => ({ _id: item._id, value: item.number })),
+        }));
       }
-    } else {
-      Swal.fire('Error!', result.message || 'Failed to save settings.', 'error');
+    } catch (err) {
+      let message = 'Failed to save settings.';
+      const error = err as FetchBaseQueryError | SerializedError;
+
+      if (isFetchBaseQueryError(error) && 'data' in error) {
+        const apiError = error as ApiError;
+        if (apiError.data?.message) {
+          message = apiError.data.message;
+        }
+      }
+
+      Swal.fire('Error!', message, 'error');
     }
   };
-  
-  const renderItemList = (listName: keyof Pick<ContactSettings, 'whatsappNumbers' | 'emailAddresses' | 'phoneNumbers'>, itemType: string) => (
+
+  const renderItemList = (
+    listName: keyof Pick<ContactSettings, 'whatsappNumbers' | 'emailAddresses' | 'phoneNumbers'>,
+    itemType: string
+  ) => (
     <div className="space-y-3">
       {(settings[listName] as ContactItem[]).map((item, index) => (
         <div key={item._id} className="flex items-center gap-2">
@@ -93,11 +132,34 @@ export default function ContactSettingsPage() {
     </div>
   );
 
+  // Type guard for FetchBaseQueryError
+  function isFetchBaseQueryError(error: unknown): error is FetchBaseQueryError {
+    return typeof error === 'object' && error != null && 'status' in error;
+  }
+
+  // Error message helper function
+  const getErrorMessage = (error: FetchBaseQueryError | SerializedError | undefined): string => {
+    if (!error) return '';
+
+    if (isFetchBaseQueryError(error)) {
+      return (error as ApiError).data?.message || 'An error occurred while fetching data';
+    }
+
+    return error.message || 'An error occurred';
+  };
+
+  if (isLoading) {
+    return <div className="flex justify-center p-8">Loading contact settings...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">{getErrorMessage(error)}</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       <h1 className="font-headline text-2xl font-semibold">Contact Page Settings</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>WhatsApp Numbers</CardTitle>
@@ -157,12 +219,20 @@ export default function ContactSettingsPage() {
           </div>
         </CardContent>
       </Card>
-      
-      <CardFooter className="border-t px-6 py-4">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Saving...' : 'Save All Settings'}
-        </Button>
-      </CardFooter>
+
+      {updateerror && (
+        <div className="text-red-500 px-6">
+          {getErrorMessage(updateerror)}
+        </div>
+      )}
+
+      <Card>
+        <CardFooter className="border-t px-6 py-4">
+          <Button type="submit" disabled={isupdating}>
+            {isupdating ? 'Saving...' : 'Save All Settings'}
+          </Button>
+        </CardFooter>
+      </Card>
     </form>
   );
 }

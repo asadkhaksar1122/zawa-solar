@@ -1,5 +1,5 @@
 
-'use client'; 
+'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -23,23 +23,28 @@ import {
 import { PlusCircle } from 'lucide-react';
 import { SolutionTable } from '@/components/admin/SolutionTable';
 import { SolutionForm } from '@/components/admin/SolutionForm';
-import { solarSolutions, companies as initialCompanies } from '@/lib/data'; // Using mock data, renamed companyCategories
+// Using mock data, renamed companyCategories
 import type { SolarSolution, Company } from '@/lib/types'; // Renamed CompanyCategory
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useGetSolutionsQuery } from '@/lib/redux/api/solutionsApi';
+import { useGetCompaniesQuery } from '@/lib/redux/api/companiesApi';
 
 
 export default function AdminSolutionsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const router = useRouter();
+  const { data } = useGetCompaniesQuery()
 
   // For this example, we continue using static mock data directly.
-  const solutions: SolarSolution[] = solarSolutions;
-  const companies: Company[] = initialCompanies; // Use renamed 'companies'
+
+
+
+  const companies: Company[] = data || []; // Use renamed 'companies'
 
   const handleFormSubmit = () => {
     setIsAddModalOpen(false);
-    router.refresh(); 
+    router.refresh();
   };
 
   return (
@@ -64,9 +69,9 @@ export default function AdminSolutionsPage() {
               <SolutionForm companies={companies} onFormSubmit={handleFormSubmit} />
             </ScrollArea>
             <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                </DialogClose>
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -80,7 +85,7 @@ export default function AdminSolutionsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <SolutionTable solutions={solutions} companies={companies} />
+          <SolutionTable />
         </CardContent>
       </Card>
     </div>

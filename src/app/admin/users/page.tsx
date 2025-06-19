@@ -24,9 +24,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { makeUserAdminAction } from './actions';
+import { makeadmin, makeUserAdminAction } from './actions';
 import Swal from 'sweetalert2';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AdminTable from '@/components/AdminTable';
 
 const makeAdminFormSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address.' }),
@@ -54,6 +55,7 @@ export default function ManageUsersPage() {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [showErrorAlert, setShowErrorAlert] = useState(false);
   const [, startTransition] = useTransition(); // For wrapping the action dispatch
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const form = useForm<MakeAdminFormValues>({
     resolver: zodResolver(makeAdminFormSchema),
@@ -69,6 +71,7 @@ export default function ManageUsersPage() {
         setShowErrorAlert(false);
         Swal.fire('Success!', formState.message, 'success');
         form.reset(); // Reset form on success
+        setRefreshTrigger(prev => prev + 1); // Trigger table refresh
       } else {
         setShowErrorAlert(true);
         setShowSuccessAlert(false);
@@ -78,12 +81,20 @@ export default function ManageUsersPage() {
   }, [formState, form]);
 
 
-  const onSubmit = (data: MakeAdminFormValues) => {
+  const onSubmit = async (data: MakeAdminFormValues) => {
     setShowSuccessAlert(false);
     setShowErrorAlert(false);
     const formData = new FormData();
     formData.append('email', data.email);
-    
+    let result = await makeadmin(data.email)
+    if (result.success) {
+      formState.message = result.message;
+      formState.success = true;
+    } else {
+      formState.message = result.message;
+      formState.success = false;
+    }
+    console.log('Form data:', data);
     // Wrap the action dispatch in startTransition
     startTransition(() => {
       dispatchMakeUserAdminAction(formData);
@@ -143,7 +154,7 @@ export default function ManageUsersPage() {
         </Form>
       </Card>
 
-      {/* Future sections for listing users, changing roles, etc. can be added here */}
+      <AdminTable refreshTrigger={refreshTrigger} />
     </div>
   );
 }

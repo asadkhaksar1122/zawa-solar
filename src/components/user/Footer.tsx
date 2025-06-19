@@ -15,9 +15,7 @@ export function UserFooter() {
           <p className="text-sm leading-loose text-muted-foreground">
             Built by Zawa Solar Energy Solutions. &copy; {new Date().getFullYear()} All rights reserved.
           </p>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/admin">Admin Panel</Link>
-          </Button>
+
         </div>
 
         {/* Links Section: Privacy & Terms */}

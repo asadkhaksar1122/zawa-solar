@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -37,25 +36,21 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger, 
+  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit3, Trash2, Loader2 } from 'lucide-react';
 import { CompanyForm } from './CompanyForm';
 import { deleteCompany } from '@/app/admin/companies/actions';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
+import { useGetCompaniesQuery } from '@/lib/redux/api/companiesApi';
 
-interface CompanyTableProps {
-  companies: Company[];
-}
-
-export function CompanyTable({ companies: initialCompanies }: CompanyTableProps) {
+export function CompanyTable() {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  
-  const companies = initialCompanies;
+  const { data: companies, isLoading, error, refetch } = useGetCompaniesQuery();
 
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
 
   const handleEdit = (company: Company) => {
     setSelectedCompany(company);
@@ -64,26 +59,47 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
 
   const handleDelete = async (companyId: string, companyName: string) => {
     const result = await deleteCompany(companyId);
+    refetch()
     if (result.success) {
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'Company Deleted', 
-        text: `Company "${companyName}" ${result.message}` 
+      Swal.fire({
+        icon: 'success',
+        title: 'Company Deleted',
+        text: `Company "${companyName}" ${result.message}`
       });
-      router.refresh(); 
+      router.refresh();
     } else {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'Error', 
-        text: result.message 
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.message
       });
     }
   };
-  
-  const handleFormSubmit = () => {
+
+  const handleFormSubmit = async () => {
+    console.log(selectedCompany)
     setIsEditModalOpen(false);
     setSelectedCompany(null);
     router.refresh();
+  };
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="h-6 w-6 animate-spin mr-2" />
+        <span className="text-muted-foreground">Loading companies...</span>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-destructive">Error loading companies. Please try again.</p>
+      </div>
+    );
   }
 
   return (
@@ -91,6 +107,7 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[80px]">Logo</TableHead>
             <TableHead>Name</TableHead>
             <TableHead className="w-[100px] text-right">
               <span className="sr-only">Actions</span>
@@ -98,8 +115,25 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
           </TableRow>
         </TableHeader>
         <TableBody>
-          {companies.map((company) => (
+          {companies && companies.length > 0 ? companies.map((company) => (
             <TableRow key={company._id}>
+              <TableCell>
+                {company.logoUrl ? (
+                  <div className="h-10 w-10 overflow-hidden rounded-md">
+                    <img
+                      src={company.logoUrl}
+                      alt={`${company.name} logo`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {company.name.substring(0, 2).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </TableCell>
               <TableCell className="font-medium">{company.name}</TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -130,7 +164,7 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(company._id, company.name)} variant="destructive">
+                          <AlertDialogAction onClick={() => handleDelete(company._id, company.name)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                             Continue
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -140,10 +174,10 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
                 </DropdownMenu>
               </TableCell>
             </TableRow>
-          ))}
+          )) : null}
         </TableBody>
       </Table>
-      {companies.length === 0 && (
+      {(!companies || companies.length === 0) && (
         <div className="text-center py-10 text-muted-foreground">
           No companies found. Add your first company to get started.
         </div>
@@ -161,11 +195,15 @@ export function CompanyTable({ companies: initialCompanies }: CompanyTableProps)
             </DialogDescription>
           </DialogHeader>
           {selectedCompany && (
-            <CompanyForm company={selectedCompany} onFormSubmit={handleFormSubmit} />
+            <CompanyForm
+              company={selectedCompany}
+              onFormSubmit={handleFormSubmit}
+              imageUrl={selectedCompany.logoUrl || undefined}
+            />
           )}
           <DialogFooter>
-             <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>

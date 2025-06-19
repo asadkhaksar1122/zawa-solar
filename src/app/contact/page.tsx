@@ -12,7 +12,9 @@ import { useGetContactSettingsQuery } from '@/lib/redux/api/contactApi';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ContactPage() {
-  const { data: contactSettings, isLoading, error } = useGetContactSettingsQuery();
+  const { data: contactSettingsData, isLoading, error } = useGetContactSettingsQuery();
+
+  const contactSettings = contactSettingsData?.[0];
 
   if (isLoading) {
     return (
@@ -78,7 +80,7 @@ export default function ContactPage() {
           </section>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16">
-            {contactSettings.whatsappNumbers.length > 0 && (
+            {contactSettings.whatsappNumbers?.length > 0 && (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
                 <CardHeader className="items-center text-center pt-6">
                   <div className="p-3 bg-green-500 rounded-full inline-block mb-3 shadow-md">
@@ -89,23 +91,23 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
-                  {contactSettings.whatsappNumbers.map(wa => (
-                    <Button key={wa._id} asChild size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white">
-                      <Link href={`https://wa.me/${wa.value.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
-                        Chat on {wa.value}
-                      </Link>
-                    </Button>
-                  ))}
+                    {contactSettings.whatsappNumbers.map((wa: any) => (
+                      <Button key={wa._id} asChild size="lg" className="w-full bg-green-500 hover:bg-green-600 text-white">
+                        <Link href={`https://wa.me/${wa.value.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer">
+                          Chat on {wa.value}
+                        </Link>
+                      </Button>
+                    ))}
                   </div>
                   <p className="text-muted-foreground text-xs">Typically replies within minutes.</p>
                 </CardContent>
               </Card>
             )}
 
-            {contactSettings.emailAddresses.length > 0 && (
+            {contactSettings.emailAddresses?.length > 0 && (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
                 <CardHeader className="items-center text-center pt-6">
-                   <div className="p-3 bg-blue-500 rounded-full inline-block mb-3 shadow-md">
+                  <div className="p-3 bg-blue-500 rounded-full inline-block mb-3 shadow-md">
                     <Mail className="h-8 w-8 text-white" />
                   </div>
                   <CardTitle className="font-headline text-xl">Email Us</CardTitle>
@@ -113,20 +115,20 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
-                  {contactSettings.emailAddresses.map(email => (
-                    <Button key={email._id} asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
-                      <Link href={`mailto:${email.value}`}>
-                        Email {email.value}
-                      </Link>
-                    </Button>
-                  ))}
+                    {contactSettings.emailAddresses.map((email: any) => (
+                      <Button key={email._id} asChild size="lg" className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+                        <Link href={`mailto:${email.value}`}>
+                          Email {email.value}
+                        </Link>
+                      </Button>
+                    ))}
                   </div>
-                   <p className="text-muted-foreground text-xs">We aim to respond within 24 hours.</p>
+                  <p className="text-muted-foreground text-xs">We aim to respond within 24 hours.</p>
                 </CardContent>
               </Card>
             )}
 
-            {contactSettings.phoneNumbers.length > 0 && (
+            {contactSettings.phoneNumbers?.length > 0 && (
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg flex flex-col">
                 <CardHeader className="items-center text-center pt-6">
                   <div className="p-3 bg-primary rounded-full inline-block mb-3 shadow-md">
@@ -137,7 +139,7 @@ export default function ContactPage() {
                 </CardHeader>
                 <CardContent className="text-center flex-grow flex flex-col justify-between">
                   <div className="space-y-2 mb-6">
-                    {contactSettings.phoneNumbers.map(phone => (
+                    {contactSettings.phoneNumbers.map((phone: any) => (
                       <Button key={phone._id} asChild size="lg" className="w-full">
                         <Link href={`tel:${phone.value}`}>
                           Call {phone.value}
@@ -150,66 +152,66 @@ export default function ContactPage() {
               </Card>
             )}
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8 mb-12 md:mb-16">
             {contactSettings.facebookUrl && (
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
+              <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
                 <CardHeader className="items-center text-center pt-6">
-                    <div className="p-3 bg-indigo-500 rounded-full inline-block mb-3 shadow-md">
+                  <div className="p-3 bg-indigo-500 rounded-full inline-block mb-3 shadow-md">
                     <Facebook className="h-8 w-8 text-white" />
-                    </div>
-                    <CardTitle className="font-headline text-xl">Facebook</CardTitle>
-                    <CardDescription>Follow us on Facebook</CardDescription>
+                  </div>
+                  <CardTitle className="font-headline text-xl">Facebook</CardTitle>
+                  <CardDescription>Follow us on Facebook</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                    <Button asChild size="lg" className="w-full bg-indigo-500 hover:bg-indigo-600 text-white">
+                  <Button asChild size="lg" className="w-full bg-indigo-500 hover:bg-indigo-600 text-white">
                     <Link href={contactSettings.facebookUrl} target="_blank" rel="noopener noreferrer">
-                        Visit our Page
+                      Visit our Page
                     </Link>
-                    </Button>
+                  </Button>
                 </CardContent>
-                </Card>
+              </Card>
             )}
 
             {contactSettings.officeAddress && (
-                <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
+              <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-lg">
                 <CardHeader className="items-center text-center pt-6">
-                    <div className="p-3 bg-orange-500 rounded-full inline-block mb-3 shadow-md">
+                  <div className="p-3 bg-orange-500 rounded-full inline-block mb-3 shadow-md">
                     <MapPin className="h-8 w-8 text-white" />
-                    </div>
-                    <CardTitle className="font-headline text-xl">Our Office</CardTitle>
-                    <CardDescription>Find us at our location</CardDescription>
+                  </div>
+                  <CardTitle className="font-headline text-xl">Our Office</CardTitle>
+                  <CardDescription>Find us at our location</CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
-                    <address className="text-muted-foreground mb-4 not-italic">
-                        {contactSettings.officeAddress}
-                    </address>
-                    <Button asChild variant="outline" size="lg" className="w-full">
-                        <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactSettings.officeAddress)}`} target="_blank" rel="noopener noreferrer">
-                            Get Directions
-                        </Link>
-                    </Button>
+                  <address className="text-muted-foreground mb-4 not-italic">
+                    {contactSettings.officeAddress}
+                  </address>
+                  <Button asChild variant="outline" size="lg" className="w-full">
+                    <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactSettings.officeAddress)}`} target="_blank" rel="noopener noreferrer">
+                      Get Directions
+                    </Link>
+                  </Button>
                 </CardContent>
-                </Card>
+              </Card>
             )}
           </div>
 
 
           <section className="text-center">
-             <h2 className="font-headline text-3xl font-semibold mb-4">Visit Our Office Location</h2>
-             <address className="text-muted-foreground max-w-xl mx-auto mb-8 not-italic">
-                {contactSettings.officeAddress || 'Address not available.'}
-             </address>
-             <div className="aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden shadow-xl border">
-                <Image
-                    src="https://placehold.co/1200x675.png"
-                    alt="Map placeholder showing office location"
-                    width={1200}
-                    height={675}
-                    className="w-full h-full object-cover"
-                    data-ai-hint="city map location"
-                />
-             </div>
+            <h2 className="font-headline text-3xl font-semibold mb-4">Visit Our Office Location</h2>
+            <address className="text-muted-foreground max-w-xl mx-auto mb-8 not-italic">
+              {contactSettings.officeAddress || 'Address not available.'}
+            </address>
+            <div className="aspect-video max-w-4xl mx-auto rounded-lg overflow-hidden shadow-xl border">
+              <Image
+                src="https://placehold.co/1200x675.png"
+                alt="Map placeholder showing office location"
+                width={1200}
+                height={675}
+                className="w-full h-full object-cover"
+                data-ai-hint="city map location"
+              />
+            </div>
           </section>
         </div>
       </main>

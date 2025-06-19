@@ -29,7 +29,7 @@ export interface Company {
 
 export interface SolarSolution {
   _id: string;
-  name:string;
+  name: string;
   company: string;
   companyId: string;
   description: string;
@@ -38,7 +38,11 @@ export interface SolarSolution {
   efficiency?: string;
   features?: string[];
   warranty?: string;
+  createdAt?: string;  // ISO string date
+  updatedAt?: string;  // ISO string date
+  __v?: number;
 }
+
 
 export interface ContactItem {
   _id: string;
@@ -46,6 +50,7 @@ export interface ContactItem {
 }
 
 export interface ContactSettings {
+  _id: any;
   whatsappNumbers: ContactItem[];
   emailAddresses: ContactItem[];
   phoneNumbers: ContactItem[];

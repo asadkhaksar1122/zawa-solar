@@ -1,5 +1,8 @@
 
+import UserModel from '@/lib/models/user';
+import { dbConnect } from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
 // In a real app, you'd import your database connection and User model here
 // import { connectToDatabase } from '@/lib/mongodb'; // Example
 // import User from '@/models/User'; // Example
@@ -12,7 +15,16 @@ export async function POST(request: Request) {
     if (!fullName || !email || !password) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
+    await dbConnect()
+    let newuser = new UserModel({
+      name: fullName,
+      email: email,
+      password: hashedPassword,
+    })
+    await newuser.save();
     // --- IMPORTANT: Database Logic Placeholder ---
     // In a real application, you would:
     // 1. Connect to your database.
@@ -28,12 +40,7 @@ export async function POST(request: Request) {
     //    const newUser = new User({ fullName, email, password: hashedPassword });
     //    await newUser.save();
     //
-    // For this prototype, we'll just log the data and simulate success.
-    console.log('--- REGISTERING USER (SIMULATED) ---');
-    console.log('Full Name:', fullName);
-    console.log('Email:', email);
-    console.log('Password (raw - should be hashed):', password);
-    console.log('--- SIMULATION COMPLETE ---');
+
     // --- End of Database Logic Placeholder ---
 
 

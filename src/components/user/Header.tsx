@@ -68,9 +68,9 @@ export function UserHeader() {
           ))}
           <div className="mx-2 h-6 border-l border-border/70"></div>
           {isLoadingSession ? (
-             <div className="flex items-center gap-2">
-                <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
-                <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
+              <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
             </div>
           ) : session?.user ? (
             <DropdownMenu>
@@ -94,10 +94,10 @@ export function UserHeader() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/admin')}> {/* Or profile page */}
+                {(session?.user as any)?.role === "admin" && <DropdownMenuItem onClick={() => router.push('/admin')}> {/* Or profile page */}
                   <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Profile</span> {/* Or Dashboard */}
-                </DropdownMenuItem>
+                  <span>Admin Page</span> {/* Or Dashboard */}
+                </DropdownMenuItem>}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                   <LogOut className="mr-2 h-4 w-4" />
@@ -170,15 +170,15 @@ export function UserHeader() {
                       <p className="text-sm font-medium">{session.user.name || 'User'}</p>
                       <p className="text-xs text-muted-foreground">{session.user.email}</p>
                     </div>
-                     <SheetClose asChild>
-                        <Button variant="outline" className="w-full" onClick={() => router.push('/admin')}>
-                            Profile
-                        </Button>
+                    <SheetClose asChild>
+                      <Button variant="outline" className="w-full" onClick={() => router.push('/admin')}>
+                        Profile
+                      </Button>
                     </SheetClose>
                     <SheetClose asChild>
-                        <Button variant="destructive" className="w-full" onClick={handleSignOut}>
-                            Log Out
-                        </Button>
+                      <Button variant="destructive" className="w-full" onClick={handleSignOut}>
+                        Log Out
+                      </Button>
                     </SheetClose>
                   </>
                 ) : (
@@ -190,7 +190,7 @@ export function UserHeader() {
                     </SheetClose>
                     <SheetClose asChild>
                       <Button className={cn("w-full", pathname === '/auth/signup' && 'ring-2 ring-primary ring-offset-2 ring-offset-background')} asChild>
-                         <Link href="/auth/signup">Sign Up</Link>
+                        <Link href="/auth/signup">Sign Up</Link>
                       </Button>
                     </SheetClose>
                   </>

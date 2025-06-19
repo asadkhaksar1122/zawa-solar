@@ -1,9 +1,8 @@
-
 'use client';
 
 import Image from 'next/image';
 import { useState } from 'react';
-import type { SolarSolution, Company } from '@/lib/types'; 
+import type { SolarSolution, Company } from '@/lib/types';
 import {
   Table,
   TableBody,
@@ -40,22 +39,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit3, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Edit3, Trash2, Loader2, AlertCircle } from 'lucide-react';
 import { SolutionForm } from './SolutionForm';
 import { deleteSolarSolution } from '@/app/admin/solutions/actions';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Swal from 'sweetalert2';
+import { useGetSolutionsQuery } from '@/lib/redux/api/solutionsApi';
+import { useGetCompaniesQuery } from '@/lib/redux/api/companiesApi';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-interface SolutionTableProps {
-  solutions: SolarSolution[];
-  companies: Company[]; 
-}
-
-export function SolutionTable({ solutions, companies }: SolutionTableProps) {
+export function SolutionTable() {
   const router = useRouter();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSolution, setSelectedSolution] = useState<SolarSolution | null>(null);
+
+  // Fetch solutions and companies
+  const { data: solutions, isLoading: isSolutionsLoading, error: solutionsError, refetch
+  } = useGetSolutionsQuery();
+  const { data: companies, isLoading: isCompaniesLoading, error: companiesError } = useGetCompaniesQuery();
 
   const handleEdit = (solution: SolarSolution) => {
     setSelectedSolution(solution);
@@ -64,28 +66,65 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
 
   const handleDelete = async (solutionId: string) => {
     const result = await deleteSolarSolution(solutionId);
+
     if (result.success) {
-      Swal.fire({ 
-        icon: 'success', 
-        title: 'Solution Deleted', 
-        text: result.message 
+      refetch()
+      Swal.fire({
+        icon: 'success',
+        title: 'Solution Deleted',
+        text: result.message
       });
-      router.refresh(); 
+      router.refresh();
     } else {
-      Swal.fire({ 
-        icon: 'error', 
-        title: 'Error', 
-        text: result.message 
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: result.message
       });
     }
   };
-  
+
   const handleFormSubmit = () => {
     setIsEditModalOpen(false);
     setSelectedSolution(null);
     router.refresh();
+  };
+
+  // Helper to get company name by id
+  const getCompanyName = (companyId: string) => {
+    if (!companies) return '';
+    const company = companies.find((c: Company) => c._id === companyId);
+    return company ? company.name : '';
+  };
+
+  // Loading state
+  if (isSolutionsLoading || isCompaniesLoading) {
+    return (
+      <div className="flex items-center justify-center py-10">
+        <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+        Loading...
+      </div>
+    );
   }
 
+  // Error state
+  if (solutionsError || companiesError) {
+    return (
+      <div className="max-w-lg mx-auto py-10">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {solutionsError && 'Failed to load solutions. '}
+            {companiesError && 'Failed to load companies.'}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // Fallback for empty data
+  const safeSolutions: SolarSolution[] = Array.isArray(solutions) ? solutions : [];
+  const safeCompanies: Company[] = Array.isArray(companies) ? companies : [];
 
   return (
     <>
@@ -102,20 +141,22 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {solutions.map((solution) => (
+          {safeSolutions.map((solution) => (
             <TableRow key={solution._id}>
               <TableCell className="hidden sm:table-cell">
                 <Image
                   alt={solution.name}
                   className="aspect-square rounded-md object-cover"
-                  height="64"
+                  height={64}
                   src={solution.imageUrl || 'https://placehold.co/64x64.png'}
-                  width="64"
+                  width={64}
                   data-ai-hint="solar panel small"
                 />
               </TableCell>
               <TableCell className="font-medium">{solution.name}</TableCell>
-              <TableCell>{solution.company}</TableCell>
+              <TableCell>
+                {getCompanyName(solution.companyId) || <span className="text-muted-foreground">Unknown</span>}
+              </TableCell>
               <TableCell className="hidden md:table-cell max-w-xs truncate">
                 {solution.description}
               </TableCell>
@@ -161,15 +202,15 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
           ))}
         </TableBody>
       </Table>
-      {solutions.length === 0 && (
+      {safeSolutions.length === 0 && (
         <div className="text-center py-10 text-muted-foreground">
           No solar solutions found.
         </div>
       )}
 
       <Dialog open={isEditModalOpen} onOpenChange={(isOpen) => {
-          setIsEditModalOpen(isOpen);
-          if (!isOpen) setSelectedSolution(null);
+        setIsEditModalOpen(isOpen);
+        if (!isOpen) setSelectedSolution(null);
       }}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -180,12 +221,12 @@ export function SolutionTable({ solutions, companies }: SolutionTableProps) {
           </DialogHeader>
           {selectedSolution && (
             <ScrollArea className="max-h-[70vh] pr-6">
-              <SolutionForm solution={selectedSolution} companies={companies} onFormSubmit={handleFormSubmit} />
+              <SolutionForm solution={selectedSolution} companies={safeCompanies} onFormSubmit={handleFormSubmit} />
             </ScrollArea>
           )}
           <DialogFooter>
-             <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
           </DialogFooter>
         </DialogContent>
