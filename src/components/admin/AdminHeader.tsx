@@ -27,7 +27,7 @@ export function AdminHeader() {
     localStorage.removeItem('authToken');
     sessionStorage.clear();
     // Redirect to login or home page
-    router.push('/login');
+    router.push('/auth/login');
   };
 
   return (
