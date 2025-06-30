@@ -170,11 +170,11 @@ export function UserHeader() {
                       <p className="text-sm font-medium">{session.user.name || 'User'}</p>
                       <p className="text-xs text-muted-foreground">{session.user.email}</p>
                     </div>
-                    <SheetClose asChild>
+                    {(session?.user as any)?.role === "admin" && <SheetClose asChild>
                       <Button variant="outline" className="w-full" onClick={() => router.push('/admin')}>
-                        Profile
+                        Admin Page
                       </Button>
-                    </SheetClose>
+                    </SheetClose>}
                     <SheetClose asChild>
                       <Button variant="destructive" className="w-full" onClick={handleSignOut}>
                         Log Out
