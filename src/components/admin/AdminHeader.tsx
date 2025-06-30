@@ -17,17 +17,17 @@ import {
 import { AdminSidebarNav } from './AdminSidebarNav';
 import { DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+import { signOut } from 'next-auth/react';
 
 export function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     // Clear any stored auth tokens/data
-    localStorage.removeItem('authToken');
-    sessionStorage.clear();
-    // Redirect to login or home page
-    router.push('/auth/login');
+    await signOut({ redirect: false, callbackUrl: '/' });
+    router.push('/'); // Or any other page you want to redirect to after logout
+    router.refresh();
   };
 
   return (
