@@ -1,10 +1,60 @@
-
+"use client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Box, Users, Activity } from "lucide-react";
+import { useGetDashboardQuery } from "@/lib/redux/api/dashboardApi";
 
 export default function AdminDashboardPage() {
+  const { data, error, isLoading } = useGetDashboardQuery();
+
+  // Handle loading state
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-headline text-2xl font-semibold">Dashboard Overview</h1>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardContent>
+              <p className="text-center text-muted-foreground">Loading...</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <p className="text-center text-muted-foreground">Loading...</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent>
+              <p className="text-center text-muted-foreground">Loading...</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-headline text-2xl font-semibold">Dashboard Overview</h1>
+        </div>
+        <Card>
+          <CardContent>
+            <p className="text-center text-red-500">
+              Error loading dashboard data. Please try again later.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Render dashboard with data
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -18,8 +68,9 @@ export default function AdminDashboardPage() {
             <Box className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">125</div>
+            <div className="text-2xl font-bold">{data?.solutionCount || 0}</div>
             <p className="text-xs text-muted-foreground">
+              {/* Hardcoded for now; update if API provides historical data */}
               +5 from last month
             </p>
           </CardContent>
@@ -30,8 +81,9 @@ export default function AdminDashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,350</div>
+            <div className="text-2xl font-bold">{data?.userCount || 0}</div>
             <p className="text-xs text-muted-foreground">
+              {/* Hardcoded for now; update if API provides historical data */}
               +180.1% from last month
             </p>
           </CardContent>
@@ -44,6 +96,7 @@ export default function AdminDashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">+573</div>
             <p className="text-xs text-muted-foreground">
+              {/* Hardcoded for now; update if API provides historical data */}
               +201 since last hour
             </p>
           </CardContent>
@@ -60,7 +113,6 @@ export default function AdminDashboardPage() {
             <Link href="/admin/solutions">Manage Solutions</Link>
           </Button>
           <Button variant="outline" asChild>
-            {/* Changed href from "/admin/solutions/new" to "/admin/solutions" */}
             <Link href="/admin/solutions">Add New Solution</Link>
           </Button>
         </CardContent>

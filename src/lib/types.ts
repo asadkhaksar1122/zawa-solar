@@ -49,6 +49,14 @@ export interface ContactItem {
   value: string;
 }
 
+
+
+// lib/types.ts
+export interface DashboardData {
+  userCount: number;
+  solutionCount: number;
+}
+
 export interface ContactSettings {
   _id: any;
   whatsappNumbers: ContactItem[];
