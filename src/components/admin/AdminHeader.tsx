@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Sun, UserCircle } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from '@/components/shared/Logo';
 import {
   DropdownMenu,
@@ -20,6 +20,15 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 export function AdminHeader() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    // Clear any stored auth tokens/data
+    localStorage.removeItem('authToken');
+    sessionStorage.clear();
+    // Redirect to login or home page
+    router.push('/login');
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 justify-between">
@@ -46,7 +55,7 @@ export function AdminHeader() {
           <h1 className="font-headline text-lg font-semibold">Admin Dashboard</h1>
         </div>
       </div>
-      
+
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/" aria-label="View Live Site" title="View Live Site">
@@ -63,10 +72,18 @@ export function AdminHeader() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
+            <div title="Feature not available yet" className="cursor-not-allowed">
+              <DropdownMenuItem disabled className="opacity-50">
+                Settings
+              </DropdownMenuItem>
+            </div>
+            <div title="Feature not available yet" className="cursor-not-allowed">
+              <DropdownMenuItem disabled className="opacity-50">
+                Support
+              </DropdownMenuItem>
+            </div>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout} className='cursor-pointer' >Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
