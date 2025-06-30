@@ -14,7 +14,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { AdminSidebarNav } from './AdminSidebarNav'; // We'll create this next
+import { AdminSidebarNav } from './AdminSidebarNav';
+import { DialogTitle } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 export function AdminHeader() {
   const pathname = usePathname();
@@ -30,6 +32,9 @@ export function AdminHeader() {
             </Button>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col p-0">
+            <VisuallyHidden>
+              <DialogTitle>Navigation Menu</DialogTitle>
+            </VisuallyHidden>
             <div className="p-4 border-b">
               <Logo href="/admin" />
             </div>

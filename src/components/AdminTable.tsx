@@ -135,46 +135,80 @@ export default function AdminTable({ admins = [], refreshTrigger = 0 }: AdminTab
             No admins found
           </div>
         ) : (
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="font-semibold">Name</TableHead>
-                  <TableHead className="font-semibold">Email</TableHead>
-                  <TableHead className="font-semibold">Role</TableHead>
-                  <TableHead className="font-semibold">Created At</TableHead>
-                  <TableHead className="font-semibold text-center">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {adminList.map((admin) => (
-                  <TableRow key={admin.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-medium">{admin.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{admin.email}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {admin.role}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(admin.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleRemoveAdmin(admin)}
-                        className="hover:bg-red-600 transition-colors"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Remove Admin
-                      </Button>
-                    </TableCell>
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block rounded-lg border overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/50">
+                    <TableHead className="font-semibold">Name</TableHead>
+                    <TableHead className="font-semibold">Email</TableHead>
+                    <TableHead className="font-semibold">Role</TableHead>
+                    <TableHead className="font-semibold">Created At</TableHead>
+                    <TableHead className="font-semibold text-center">Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHeader>
+                <TableBody>
+                  {adminList.map((admin) => (
+                    <TableRow key={admin.id} className="hover:bg-muted/30 transition-colors">
+                      <TableCell className="font-medium">{admin.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{admin.email}</TableCell>
+                      <TableCell>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          {admin.role}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {new Date(admin.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleRemoveAdmin(admin)}
+                          className="hover:bg-red-600 transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Remove Admin
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-4">
+              {adminList.map((admin) => (
+                <div key={admin.id} className="border rounded-lg p-4 space-y-3 bg-card">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <h3 className="font-medium text-sm">{admin.name}</h3>
+                      <p className="text-xs text-muted-foreground break-all">{admin.email}</p>
+                    </div>
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                      {admin.role}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(admin.createdAt).toLocaleDateString()}
+                    </span>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleRemoveAdmin(admin)}
+                      className="hover:bg-red-600 transition-colors text-xs px-2 py-1 h-7"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </CardContent>
     </Card>

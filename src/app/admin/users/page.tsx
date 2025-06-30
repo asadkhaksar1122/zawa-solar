@@ -43,7 +43,7 @@ const initialState = {
 // Updated SubmitButton to take isPending prop
 function SubmitButton({ isPending }: { isPending: boolean }) {
   return (
-    <Button type="submit" disabled={isPending} className="w-full sm:w-auto">
+    <Button type="submit" disabled={isPending} className="w-full sm:w-auto text-sm">
       {isPending ? 'Processing...' : 'Make Admin'}
     </Button>
   );
@@ -103,58 +103,60 @@ export default function ManageUsersPage() {
 
 
   return (
-    <div className="space-y-6">
-      <h1 className="font-headline text-2xl font-semibold">Manage Users</h1>
+    <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <h1 className="font-headline text-xl sm:text-2xl font-semibold">Manage Users</h1>
 
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle>Designate Admin</CardTitle>
-          <CardDescription>
-            Enter the email address of an existing user to grant them admin privileges.
-            This action is currently simulated.
-          </CardDescription>
-        </CardHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-4">
-              {showSuccessAlert && formState.success && (
-                <Alert variant="default" className="bg-green-100 border-green-300 text-green-700">
-                  <AlertDescription>{formState.message}</AlertDescription>
-                </Alert>
-              )}
-              {showErrorAlert && !formState.success && (
-                <Alert variant="destructive">
-                  <AlertDescription>{formState.message}</AlertDescription>
-                </Alert>
-              )}
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel htmlFor="admin-email">User Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        id="admin-email"
-                        type="email"
-                        placeholder="user@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+        <Card className="shadow-lg">
+          <CardHeader className="px-4 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl">Designate Admin</CardTitle>
+            <CardDescription className="text-sm">
+              Enter the email address of an existing user to grant them admin privileges.
+              This action is currently simulated.
+            </CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+              <CardContent className="space-y-4 px-4 sm:px-6">
+                {showSuccessAlert && formState.success && (
+                  <Alert variant="default" className="bg-green-100 border-green-300 text-green-700">
+                    <AlertDescription className="text-sm">{formState.message}</AlertDescription>
+                  </Alert>
                 )}
-              />
-            </CardContent>
-            <CardFooter>
-              {/* Pass isActionPending to SubmitButton */}
-              <SubmitButton isPending={isActionPending} />
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+                {showErrorAlert && !formState.success && (
+                  <Alert variant="destructive">
+                    <AlertDescription className="text-sm">{formState.message}</AlertDescription>
+                  </Alert>
+                )}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="admin-email" className="text-sm">User Email</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="admin-email"
+                          type="email"
+                          placeholder="user@example.com"
+                          className="text-sm"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className="px-4 sm:px-6">
+                <SubmitButton isPending={isActionPending} />
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
 
-      <AdminTable refreshTrigger={refreshTrigger} />
+        <AdminTable refreshTrigger={refreshTrigger} />
+      </div>
     </div>
   );
 }
