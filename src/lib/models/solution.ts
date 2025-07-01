@@ -35,7 +35,7 @@ const solarSolutionSchema = new Schema<ISolarSolution>({
     },
     imageUrl: {
         type: String,
-        required: true,
+        required: false,
         default: "https://i.pinimg.com/736x/69/86/29/69862974a76ebd3f794e1db19d215a09.jpg"
     },
     powerOutput: {

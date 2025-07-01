@@ -29,7 +29,9 @@ const solutionFormSchema = z.object({
   name: z.string().min(3, { message: 'Name must be at least 3 characters.' }),
   companyId: z.string({ required_error: "Please select a company." }),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL for the image.' }).optional().or(z.literal('')),
+  imageUrl: z.string().optional().refine((val) => !val || z.string().url().safeParse(val).success, {
+    message: 'Please enter a valid URL for the image.'
+  }),
   powerOutput: z.string().optional(),
   efficiency: z.string().optional(),
   features: z.string().optional(), // Comma-separated string
@@ -264,20 +266,25 @@ export function SolutionForm({ solution, companies, onFormSubmit }: SolutionForm
       const companyName = companyMap.get(data.companyId) || "Unknown Company";
 
       // Use Cloudinary URL if available, otherwise use the input URL or data URI
-      const finalImageUrl = imageUrl || data.imageUrl || fileDataUri || '';
+      const finalImageUrl = imageUrl || data.imageUrl || fileDataUri;
 
       // Prepare the solution data according to SolarSolution interface
-      const solutionData = {
+      const solutionData: any = {
         name: data.name,
         companyId: data.companyId,
         company: companyName,
         description: data.description,
-        imageUrl: finalImageUrl,
         powerOutput: data.powerOutput || '',
         efficiency: data.efficiency || '',
         features: data.features ? data.features.split(',').map(f => f.trim()).filter(f => f) : [],
         warranty: data.warranty || '',
       };
+
+      // Only include imageUrl if it has a valid value, otherwise omit it completely
+      // This allows the backend to use its default value
+      if (finalImageUrl && finalImageUrl.trim() !== '') {
+        solutionData.imageUrl = finalImageUrl;
+      }
 
       if (solution) {
         // Update existing solution

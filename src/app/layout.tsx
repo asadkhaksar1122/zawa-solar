@@ -1,8 +1,9 @@
 
-import type {Metadata} from 'next';
+import type { Metadata } from 'next';
 import './globals.css';
 import { ReduxProvider } from '@/lib/redux/ReduxProvider';
 import { NextAuthProvider } from './NextAuthProvider'; // We'll create this next
+import Chatbot from '@/components/Chatbot';
 
 export const metadata: Metadata = {
   title: 'Zawa Energy Hub',
@@ -26,6 +27,7 @@ export default function RootLayout({
         <NextAuthProvider>
           <ReduxProvider>
             {children}
+            <Chatbot></Chatbot>
           </ReduxProvider>
         </NextAuthProvider>
       </body>

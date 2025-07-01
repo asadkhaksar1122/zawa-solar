@@ -1,6 +1,7 @@
 
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
+
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -20,6 +21,7 @@ export default function AdminLayout({
         <AdminHeader />
         <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/20 overflow-auto"> {/* Added overflow-auto here */}
           {children}
+
         </main>
       </div>
     </div>

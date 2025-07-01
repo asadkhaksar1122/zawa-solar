@@ -9,25 +9,38 @@ body {
 
 @layer base {
   :root {
-    --background: 200 60% 97%; /* #EBF4F8 - Very light blue */
-    --foreground: 210 29% 29%; /* Dark gray for text */
+    --background: 200 60% 97%;
+    /* #EBF4F8 - Very light blue */
+    --foreground: 210 29% 29%;
+    /* Dark gray for text */
     --card: 0 0% 100%;
     --card-foreground: 210 29% 29%;
     --popover: 0 0% 100%;
     --popover-foreground: 210 29% 29%;
-    --primary: 190 48% 65%; /* #7EC4CF - Soft blue */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 200 50% 90%; /* Lighter blue-gray */
-    --secondary-foreground: 190 48% 45%; /* Darker soft blue */
-    --muted: 200 40% 88%; /* Muted light blue-gray */
-    --muted-foreground: 200 30% 55%; /* Muted gray */
-    --accent: 33 100% 63%; /* #FFB347 - Yellow-orange */
-    --accent-foreground: 0 0% 0%; /* Black */
+    --primary: 190 48% 65%;
+    /* #7EC4CF - Soft blue */
+    --primary-foreground: 0 0% 100%;
+    /* White */
+    --secondary: 200 50% 90%;
+    /* Lighter blue-gray */
+    --secondary-foreground: 190 48% 45%;
+    /* Darker soft blue */
+    --muted: 200 40% 88%;
+    /* Muted light blue-gray */
+    --muted-foreground: 200 30% 55%;
+    /* Muted gray */
+    --accent: 33 100% 63%;
+    /* #FFB347 - Yellow-orange */
+    --accent-foreground: 0 0% 0%;
+    /* Black */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 190 30% 80%; /* Soft blue tinted border */
-    --input: 190 30% 85%; /* Lighter soft blue tinted input */
-    --ring: 190 48% 65%; /* Soft blue for ring */
+    --border: 190 30% 80%;
+    /* Soft blue tinted border */
+    --input: 190 30% 85%;
+    /* Lighter soft blue tinted input */
+    --ring: 190 48% 65%;
+    /* Soft blue for ring */
     --chart-1: 190 48% 65%;
     --chart-2: 33 100% 63%;
     --chart-3: 200 50% 70%;
@@ -36,15 +49,24 @@ body {
     --radius: 0.5rem;
 
     /* Sidebar specific colors aligned with the theme */
-    --sidebar-background: 190 40% 60%; /* Slightly darker/muted primary for sidebar */
-    --sidebar-foreground: 0 0% 100%; /* White text */
-    --sidebar-primary: 33 100% 63%; /* Accent color for active/primary items in sidebar */
-    --sidebar-primary-foreground: 0 0% 0%; /* Black text on accent */
-    --sidebar-accent: 190 48% 70%; /* Lighter primary for hover */
-    --sidebar-accent-foreground: 0 0% 100%; /* White text on hover */
-    --sidebar-border: 190 40% 50%; /* Darker sidebar background for borders */
-    --sidebar-ring: 33 100% 70%; /* Lighter accent for rings */
+    --sidebar-background: 190 40% 60%;
+    /* Slightly darker/muted primary for sidebar */
+    --sidebar-foreground: 0 0% 100%;
+    /* White text */
+    --sidebar-primary: 33 100% 63%;
+    /* Accent color for active/primary items in sidebar */
+    --sidebar-primary-foreground: 0 0% 0%;
+    /* Black text on accent */
+    --sidebar-accent: 190 48% 70%;
+    /* Lighter primary for hover */
+    --sidebar-accent-foreground: 0 0% 100%;
+    /* White text on hover */
+    --sidebar-border: 190 40% 50%;
+    /* Darker sidebar background for borders */
+    --sidebar-ring: 33 100% 70%;
+    /* Lighter accent for rings */
   }
+
   .dark {
     /* For dark mode, we'll invert or adjust. For now, focusing on light mode as specified.
        Using a darker version of the primary theme for a consistent feel if dark mode is enabled. */
@@ -54,13 +76,15 @@ body {
     --card-foreground: 200 30% 90%;
     --popover: 190 15% 10%;
     --popover-foreground: 200 30% 90%;
-    --primary: 190 48% 55%; /* Slightly desaturated primary for dark */
+    --primary: 190 48% 55%;
+    /* Slightly desaturated primary for dark */
     --primary-foreground: 0 0% 100%;
     --secondary: 190 20% 20%;
     --secondary-foreground: 200 30% 90%;
     --muted: 190 15% 25%;
     --muted-foreground: 200 25% 70%;
-    --accent: 33 100% 60%; /* Accent slightly darker */
+    --accent: 33 100% 60%;
+    /* Accent slightly darker */
     --accent-foreground: 0 0% 0%;
     --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 98%;
@@ -83,7 +107,83 @@ body {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Chatbot animations */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounce {
+
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+
+  40% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 1.4s infinite ease-in-out;
+}
+
+.delay-100 {
+  animation-delay: 0.16s;
+}
+
+.delay-200 {
+  animation-delay: 0.32s;
+}
+
+/* Smooth scrollbar for chat messages */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
