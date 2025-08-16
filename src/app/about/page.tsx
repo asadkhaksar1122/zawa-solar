@@ -1,6 +1,6 @@
 // about.jsx - Updated with enhanced team section
 "use client"
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { UserHeader } from "@/components/user/Header";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,8 @@ const About = () => {
         rest: { opacity: 0, y: 8 },
         hover: { opacity: 1, y: 0 }
     };
+
+    const [hovered, setHovered] = useState<number | null>(null);
 
     return (
         <div className="min-h-screen bg-background">
@@ -162,6 +164,8 @@ const About = () => {
                                 whileHover="hover"
                                 animate="rest"
                                 variants={cardVariants}
+                                onHoverStart={() => setHovered(idx)}
+                                onHoverEnd={() => setHovered(null)}
                             >
                                 <Card className="border-border/40 overflow-hidden h-full cursor-pointer">
                                     <CardContent className="p-6 text-center">
@@ -181,7 +185,7 @@ const About = () => {
 
                                         {/* Hover View - Detailed Information (Framer Motion) */}
                                         <motion.div
-                                            className="absolute inset-0 p-6 bg-background flex flex-col justify-center"
+                                            className={`absolute inset-0 p-6 bg-background flex flex-col justify-center ${hovered === idx ? 'pointer-events-auto z-20' : 'pointer-events-none z-10'}`}
                                             variants={overlayVariants}
                                             transition={{ duration: 0.28, ease: 'easeOut' }}
                                         >
