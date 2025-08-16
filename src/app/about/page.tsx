@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { Mail, ExternalLink, GraduationCap, Briefcase, Award } from "lucide-react";
+import { motion } from 'framer-motion';
 
 const About = () => {
     const teamMembers = [
@@ -51,6 +52,21 @@ const About = () => {
             achievements: "99% customer satisfaction rate"
         },
     ];
+
+    const cardVariants = {
+        rest: { scale: 1, y: 0 },
+        hover: { scale: 1.05, y: -6 }
+    };
+
+    const frontVariants = {
+        rest: { opacity: 1 },
+        hover: { opacity: 0 }
+    };
+
+    const overlayVariants = {
+        rest: { opacity: 0, y: 8 },
+        hover: { opacity: 1, y: 0 }
+    };
 
     return (
         <div className="min-h-screen bg-background">
@@ -139,10 +155,17 @@ const About = () => {
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                         {teamMembers.map((member, idx) => (
-                            <div key={idx} className="group relative">
-                                <Card className="border-border/40 overflow-hidden h-full transition-all duration-300 group-hover:scale-105 cursor-pointer">
+                            <motion.div
+                                key={idx}
+                                className="relative"
+                                initial="rest"
+                                whileHover="hover"
+                                animate="rest"
+                                variants={cardVariants}
+                            >
+                                <Card className="border-border/40 overflow-hidden h-full cursor-pointer">
                                     <CardContent className="p-6 text-center">
-                                        <div className="transition-opacity duration-300 group-hover:opacity-0">
+                                        <motion.div variants={frontVariants} transition={{ duration: 0.25 }}>
                                             <div className="relative h-[150px] w-[150px] mx-auto mb-4 cursor-pointer">
                                                 <Image
                                                     src={member.img}
@@ -154,10 +177,14 @@ const About = () => {
                                             </div>
                                             <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
                                             <p className="text-muted-foreground text-sm">{member.role}</p>
-                                        </div>
+                                        </motion.div>
 
-                                        {/* Hover View - Detailed Information */}
-                                        <div className="absolute inset-0 p-6 bg-background flex flex-col justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
+                                        {/* Hover View - Detailed Information (Framer Motion) */}
+                                        <motion.div
+                                            className="absolute inset-0 p-6 bg-background flex flex-col justify-center"
+                                            variants={overlayVariants}
+                                            transition={{ duration: 0.28, ease: 'easeOut' }}
+                                        >
                                             <div className="relative h-[80px] w-[80px] mx-auto mb-3">
                                                 <Image
                                                     src={member.img}
@@ -184,10 +211,10 @@ const About = () => {
                                                     <span className="text-muted-foreground">{member.achievements}</span>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     </CardContent>
                                 </Card>
-                            </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
