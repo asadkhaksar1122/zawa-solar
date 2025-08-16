@@ -54,18 +54,48 @@ const About = () => {
     ];
 
     const cardVariants = {
-        rest: { scale: 1, y: 0 },
-        hover: { scale: 1.05, y: -6 }
+        rest: { 
+            scale: 1, 
+            y: 0,
+            rotateY: 0,
+            boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)"
+        },
+        hover: { 
+            scale: 1.08, 
+            y: -12,
+            rotateY: 5,
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+        }
     };
 
     const frontVariants = {
-        rest: { opacity: 1 },
-        hover: { opacity: 0 }
+        rest: { opacity: 1, scale: 1, filter: "blur(0px)" },
+        hover: { opacity: 0, scale: 0.95, filter: "blur(2px)" }
     };
 
     const overlayVariants = {
-        rest: { opacity: 0, y: 8 },
-        hover: { opacity: 1, y: 0 }
+        rest: { 
+            opacity: 0, 
+            y: 20, 
+            scale: 0.9,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.95) 100%)"
+        },
+        hover: { 
+            opacity: 1, 
+            y: 0, 
+            scale: 1,
+            background: "linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)"
+        }
+    };
+
+    const imageVariants = {
+        rest: { scale: 1, rotate: 0 },
+        hover: { scale: 1.1, rotate: 2 }
+    };
+
+    const iconVariants = {
+        rest: { scale: 1, rotate: 0 },
+        hover: { scale: 1.2, rotate: 10 }
     };
 
     const [hovered, setHovered] = useState<number | null>(null);
@@ -159,61 +189,113 @@ const About = () => {
                         {teamMembers.map((member, idx) => (
                             <motion.div
                                 key={idx}
-                                className="relative"
+                                className="relative group perspective-1000"
                                 initial="rest"
                                 whileHover="hover"
                                 animate="rest"
                                 variants={cardVariants}
                                 onHoverStart={() => setHovered(idx)}
                                 onHoverEnd={() => setHovered(null)}
+                                transition={{ duration: 0.4, ease: "easeOut" }}
                             >
-                                <Card className="border-border/40 overflow-hidden h-full cursor-pointer">
-                                    <CardContent className="p-6 text-center">
-                                        <motion.div variants={frontVariants} transition={{ duration: 0.25 }}>
-                                            <div className="relative h-[150px] w-[150px] mx-auto mb-4 cursor-pointer">
+                                <Card className="border-border/40 overflow-hidden h-full cursor-pointer relative bg-gradient-to-br from-background to-muted/20 backdrop-blur-sm">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <CardContent className="p-6 text-center relative z-10">
+                                        <motion.div 
+                                            variants={frontVariants} 
+                                            transition={{ duration: 0.35, ease: "easeInOut" }}
+                                        >
+                                            <motion.div 
+                                                className="relative h-[150px] w-[150px] mx-auto mb-4 cursor-pointer"
+                                                variants={imageVariants}
+                                                transition={{ duration: 0.4 }}
+                                            >
+                                                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                                 <Image
                                                     src={member.img}
                                                     alt={member.name}
                                                     fill
-                                                    className="object-cover rounded-full border-2 border-border"
+                                                    className="object-cover rounded-full border-3 border-gradient-to-r from-primary/30 to-primary/60 shadow-lg"
                                                     unoptimized
                                                 />
-                                            </div>
-                                            <h3 className="text-lg font-bold text-foreground">{member.name}</h3>
-                                            <p className="text-muted-foreground text-sm">{member.role}</p>
+                                                <div className="absolute inset-0 rounded-full ring-2 ring-primary/20 ring-offset-2 ring-offset-background opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                                            </motion.div>
+                                            <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors duration-300">{member.name}</h3>
+                                            <p className="text-muted-foreground text-sm group-hover:text-primary/80 transition-colors duration-300">{member.role}</p>
                                         </motion.div>
 
-                                        {/* Hover View - Detailed Information (Framer Motion) */}
+                                        {/* Enhanced Hover View */}
                                         <motion.div
-                                            className={`absolute inset-0 p-6 bg-background flex flex-col justify-center ${hovered === idx ? 'pointer-events-auto z-20' : 'pointer-events-none z-10'}`}
+                                            className={`absolute inset-0 p-6 flex flex-col justify-center rounded-lg backdrop-blur-md ${hovered === idx ? 'pointer-events-auto z-20' : 'pointer-events-none z-10'}`}
                                             variants={overlayVariants}
-                                            transition={{ duration: 0.28, ease: 'easeOut' }}
+                                            transition={{ duration: 0.4, ease: 'easeOut' }}
                                         >
-                                            <div className="relative h-[80px] w-[80px] mx-auto mb-3">
-                                                <Image
-                                                    src={member.img}
-                                                    alt={member.name}
-                                                    fill
-                                                    className="object-cover rounded-full border-2 border-primary"
-                                                    unoptimized
-                                                />
-                                            </div>
-                                            <h3 className="text-lg font-bold text-foreground mb-1">{member.name}</h3>
-                                            <p className="text-primary text-sm font-medium mb-3">{member.role}</p>
+                                            <div className="absolute inset-0 bg-gradient-to-br from-white/95 via-white/90 to-primary/10 rounded-lg" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-primary/5 to-transparent rounded-lg" />
+                                            
+                                            <div className="relative z-10">
+                                                <motion.div 
+                                                    className="relative h-[80px] w-[80px] mx-auto mb-3"
+                                                    initial={{ scale: 0.8, rotate: -10 }}
+                                                    animate={hovered === idx ? { scale: 1, rotate: 0 } : { scale: 0.8, rotate: -10 }}
+                                                    transition={{ duration: 0.3, delay: 0.1 }}
+                                                >
+                                                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 blur-lg" />
+                                                    <Image
+                                                        src={member.img}
+                                                        alt={member.name}
+                                                        fill
+                                                        className="object-cover rounded-full border-2 border-primary shadow-xl"
+                                                        unoptimized
+                                                    />
+                                                </motion.div>
+                                                
+                                                <motion.h3 
+                                                    className="text-lg font-bold text-foreground mb-1"
+                                                    initial={{ y: 10, opacity: 0 }}
+                                                    animate={hovered === idx ? { y: 0, opacity: 1 } : { y: 10, opacity: 0 }}
+                                                    transition={{ duration: 0.3, delay: 0.15 }}
+                                                >
+                                                    {member.name}
+                                                </motion.h3>
+                                                
+                                                <motion.p 
+                                                    className="text-primary text-sm font-medium mb-4 bg-primary/10 px-3 py-1 rounded-full inline-block"
+                                                    initial={{ y: 10, opacity: 0 }}
+                                                    animate={hovered === idx ? { y: 0, opacity: 1 } : { y: 10, opacity: 0 }}
+                                                    transition={{ duration: 0.3, delay: 0.2 }}
+                                                >
+                                                    {member.role}
+                                                </motion.p>
 
-                                            <div className="space-y-2 text-left text-xs">
-                                                <div className="flex items-start gap-2">
-                                                    <GraduationCap className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                                                    <span className="text-muted-foreground">{member.education}</span>
-                                                </div>
-                                                <div className="flex items-start gap-2">
-                                                    <Briefcase className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                                                    <span className="text-muted-foreground">{member.experience}</span>
-                                                </div>
-                                                <div className="flex items-start gap-2">
-                                                    <Award className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
-                                                    <span className="text-muted-foreground">{member.achievements}</span>
-                                                </div>
+                                                <motion.div 
+                                                    className="space-y-3 text-left text-xs"
+                                                    initial={{ y: 20, opacity: 0 }}
+                                                    animate={hovered === idx ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+                                                    transition={{ duration: 0.4, delay: 0.25 }}
+                                                >
+                                                    <motion.div 
+                                                        className="flex items-start gap-3 p-2 rounded-lg bg-white/50 backdrop-blur-sm border border-primary/10"
+                                                        variants={iconVariants}
+                                                    >
+                                                        <GraduationCap className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                                        <span className="text-muted-foreground font-medium">{member.education}</span>
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        className="flex items-start gap-3 p-2 rounded-lg bg-white/50 backdrop-blur-sm border border-primary/10"
+                                                        variants={iconVariants}
+                                                    >
+                                                        <Briefcase className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                                        <span className="text-muted-foreground font-medium">{member.experience}</span>
+                                                    </motion.div>
+                                                    <motion.div 
+                                                        className="flex items-start gap-3 p-2 rounded-lg bg-white/50 backdrop-blur-sm border border-primary/10"
+                                                        variants={iconVariants}
+                                                    >
+                                                        <Award className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                                                        <span className="text-muted-foreground font-medium">{member.achievements}</span>
+                                                    </motion.div>
+                                                </motion.div>
                                             </div>
                                         </motion.div>
                                     </CardContent>
