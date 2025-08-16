@@ -16,9 +16,10 @@ const navItems = [
 
 interface AdminSidebarNavProps {
   className?: string;
+  onLinkClick?: () => void;
 }
 
-export function AdminSidebarNav({ className }: AdminSidebarNavProps) {
+export function AdminSidebarNav({ className, onLinkClick }: AdminSidebarNavProps) {
   const pathname = usePathname();
 
   return (
@@ -30,6 +31,7 @@ export function AdminSidebarNav({ className }: AdminSidebarNavProps) {
           <Link
             key={item.href}
             href={item.href}
+            onClick={onLinkClick}
             className={cn(
               'flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary',
               isActive ? 'bg-muted text-primary' : 'text-muted-foreground'

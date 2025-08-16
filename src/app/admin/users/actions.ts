@@ -24,8 +24,7 @@ export async function makeUserAdminAction(
     }
     await dbConnect()
 
-
-    const updateduser = UserModel.findOneAndUpdate({ email: validatedFields.data.email }, { $set: { role: 'admin' } }, { new: true })
+    const updateduser = await UserModel.findOneAndUpdate({ email: validatedFields.data.email }, { $set: { role: 'admin' } }, { new: true });
     if (!updateduser) {
       return { success: false, message: `User with email ${validatedFields.data.email} not found.` };
     } else {
@@ -61,19 +60,36 @@ export async function makeUserAdminAction(
 }
 
 
-export async function makeadmin(Email: string) {
+export async function makeadmin(email: string) {
   try {
-    console.log("making admin")
+    console.log("making admin");
     await dbConnect();
-    const updateduser = await UserModel.findOneAndUpdate({ email: Email }, { $set: { role: 'admin' } }, { new: true })
-    if (!updateduser) {
-      return { success: false, message: `User with email ${Email} not found.` };
-    } else {
-      console.log(updateduser)
-      return { success: true, message: `Admin privileges granted to ${Email}.` };
+
+    const normalized = email?.trim();
+    if (!normalized) {
+      return { success: false, message: "Email is required." };
     }
+
+    const result = await UserModel.updateOne(
+      { email: normalized },
+      { $set: { role: "admin" } },
+      {
+        upsert: false,
+        // Optional: make email match case-insensitive (if you store mixed-case emails)
+        // collation: { locale: "en", strength: 2 },
+      }
+    );
+
+    console.log("update result:", result);
+
+    if (result.matchedCount === 0) {
+      return { success: false, message: `User with email ${email} not found.` };
+    }
+
+    return { success: true, message: `Admin privileges granted to ${email}.` };
   } catch (error) {
-    return { success: false, message: "error in making admin" }
+    console.error(error);
+    return { success: false, message: "Error in making admin." };
   }
 }
 export async function removeadmin(id: string) {

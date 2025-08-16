@@ -150,7 +150,9 @@ export default function HomePage() {
             <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
               We are dedicated to providing accessible and affordable solar energy solutions to help you reduce your carbon footprint and save on energy costs. Our team of experts is passionate about renewable energy and committed to delivering excellence.
             </p>
-            <Button variant="outline">Learn More About Us</Button>
+            <Link href="/about">
+              <Button variant="outline">Learn More About Us</Button>
+            </Link>
           </div>
         </section>
 

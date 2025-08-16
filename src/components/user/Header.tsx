@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/Logo';
-import { Menu, UserCircle, LogOut } from 'lucide-react';
+import { Menu, UserCircle, LogOut, Edit, Pen } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -25,17 +25,118 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Assuming you have Avatar
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+// Form schema for changing name
+const changeNameSchema = z.object({
+  newName: z.string().min(1, 'Name is required').min(2, 'Name must be at least 2 characters'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type ChangeNameFormValues = z.infer<typeof changeNameSchema>;
 
 export function UserHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const isLoadingSession = status === 'loading';
+
+  // State for change name dialog
+  const [isChangeNameDialogOpen, setIsChangeNameDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Form for changing name
+  const form = useForm<ChangeNameFormValues>({
+    resolver: zodResolver(changeNameSchema),
+    defaultValues: {
+      newName: session?.user?.name || '',
+      password: '',
+    },
+  });
+
+  // Update form when session changes
+  React.useEffect(() => {
+    if (session?.user?.name) {
+      form.setValue('newName', session.user.name);
+    }
+  }, [session?.user?.name, form]);
+
+  // Handle form submission
+  const onSubmitChangeName = async (data: ChangeNameFormValues) => {
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch('/api/user/change-name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newName: data.newName,
+          password: data.password,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to update name');
+      }
+
+      // Update the session with the new name
+      console.log('Updating session with new name:', data.newName);
+
+      // Use the update function to trigger a session refresh
+      await update({ name: data.newName });
+
+      // Refresh the router to ensure all components get the updated session
+      router.refresh();
+
+      setSuccess('Name updated successfully!');
+      form.reset({ newName: data.newName, password: '' });
+
+      // Close dialog after a short delay
+      setTimeout(() => {
+        setIsChangeNameDialogOpen(false);
+        setSuccess(null);
+      }, 1500);
+
+    } catch (error: any) {
+      setError(error.message || 'An error occurred while updating your name');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const navLinks = [
     { href: '/', label: 'Solutions', activeCondition: () => pathname === '/' || pathname.startsWith('/solutions') },
-    { href: '/#about', label: 'About Us', activeCondition: () => pathname === '/' && !!(typeof window !== 'undefined' && window.location.hash === '#about') || pathname === '/#about' },
+    { href: '/about', label: 'About Us', activeCondition: () => pathname === '/' && !!(typeof window !== 'undefined' && window.location.hash === '#about') || pathname === '/#about' },
     { href: '/contact', label: 'Contact', activeCondition: () => pathname === '/contact' },
   ];
 
@@ -87,7 +188,17 @@ export function UserHeader() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user.name || 'User'}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium leading-none">{session.user.name || 'User'}</p>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 p-0"
+                        onClick={() => setIsChangeNameDialogOpen(true)}
+                      >
+                        <Pen className="h-3 w-3" />
+                      </Button>
+                    </div>
                     <p className="text-xs leading-none text-muted-foreground">
                       {session.user.email}
                     </p>
@@ -167,8 +278,20 @@ export function UserHeader() {
                 ) : session?.user ? (
                   <>
                     <div className="px-3 py-2">
-                      <p className="text-sm font-medium">{session.user.name || 'User'}</p>
-                      <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">{session.user.name || 'User'}</p>
+                          <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 p-0 my-auto"
+                          onClick={() => setIsChangeNameDialogOpen(true)}
+                        >
+                          <Pen className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                     {(session?.user as any)?.role === "admin" && <SheetClose asChild>
                       <Button variant="outline" className="w-full" onClick={() => router.push('/admin')}>
@@ -200,6 +323,80 @@ export function UserHeader() {
           </Sheet>
         </div>
       </div>
+
+      {/* Change Name Dialog */}
+      <Dialog open={isChangeNameDialogOpen} onOpenChange={setIsChangeNameDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Change Your Name</DialogTitle>
+            <DialogDescription>
+              Enter your new name and current password to update your profile.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmitChangeName)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="newName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your new name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter your current password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert>
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
+              )}
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsChangeNameDialogOpen(false);
+                    form.reset();
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Updating...' : 'Update Name'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

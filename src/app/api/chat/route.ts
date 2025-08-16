@@ -28,6 +28,50 @@ interface ContactSettings {
     officeAddress: string;
 }
 
+interface TeamMember {
+    name: string;
+    role: string;
+    img: string;
+    education: string;
+    experience: string;
+    achievements: string;
+}
+
+const teamMembers: TeamMember[] = [
+    {
+        name: "Wahid Amin",
+        role: "CEO",
+        img: "/wahid.png",
+        education: "Master in Renewable Energy",
+        experience: "10+ years in renewable energy",
+        achievements: "Led 500+ solar installations"
+    },
+    {
+        name: "Umair Khan",
+        role: "Senior Manager",
+        img: "/umair.png",
+        education: "B-Tech in Civil Engineering",
+        experience: "12+ years in solar technology",
+        achievements: "30+ patents in solar innovation"
+    },
+    {
+        name: "Sohaib Hassan",
+        role: "Lead Engineer",
+        img: "/sohaibhassan.jpg",
+        education: "Diploma in Electrical Engineering",
+        experience: "1+ years in system design",
+        achievements: "Certified Solar Professional (CSP)"
+    },
+    {
+        name: "Asad Khan",
+        role: "Technical Manager",
+        img: "/asadimg.jpg",
+        education: "Software Engineer",
+        experience: "1 year experience",
+        achievements: "99% customer satisfaction rate"
+    },
+];
+
 async function fetchCompanyData() {
     try {
         // Fetch all data from your APIs with individual error handling
@@ -106,6 +150,23 @@ BUSINESS HOURS:
 - WhatsApp/Phone Contact Hours: Same as office hours (9:00 AM to 6:00 PM, Monday-Thursday & Saturday)
 - Email Response: Available during business hours, but responses may be delayed
 
+OUR TEAM:
+${teamMembers.map((member) => `
+![${member.name}](${member.img})
+
+**${member.name}** - ${member.role}
+- Education: ${member.education}
+- Experience: ${member.experience}
+- Achievements: ${member.achievements}
+`).join('\n---\n')}
+
+TEAM EXPERTISE:
+- Combined 20+ years of experience in renewable energy
+- Over 500 successful solar installations completed
+- 30+ patents in solar innovation
+- 99% customer satisfaction rate
+- Certified Solar Professionals on staff
+
 COMPANIES WE WORK WITH:
 ${Array.isArray(companies) && companies.length > 0 ? companies.map((c: Company) => `- ${c.name}`).join('\n') : 'Currently no companies are listed in our database.'}
 
@@ -132,8 +193,11 @@ Instructions:
 - If someone asks for contact info, provide all relevant details including business hours
 - When discussing products, mention key specifications
 - When asked about companies, always check the COMPANIES WE WORK WITH section above and list the exact companies shown there
+- When asked about the team, provide relevant information about team members, their expertise, and achievements. ALWAYS include the team member images using the exact markdown format shown in the team section above.
+- Highlight the team's collective experience and qualifications when relevant
 - Keep responses concise but informative
-- Always consider the Pakistani context (time zone, currency, working days, etc.)`;
+- Always consider the Pakistani context (time zone, currency, working days, etc.)
+- When showing team information, always include the team member photos using the markdown image format provided`;
 }
 
 export async function POST(request: Request) {
