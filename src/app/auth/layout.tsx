@@ -4,8 +4,8 @@ import { UserFooter } from '@/components/user/Footer';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Authentication - Zawa Energy Hub',
-  description: 'Login or Sign Up to Zawa Energy Hub.',
+  title: 'Authentication - Zawa Soler Energy',
+  description: 'Login or Sign Up to Zawa Soler Energy Hub.',
 };
 
 export default function AuthLayout({

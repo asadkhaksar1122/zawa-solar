@@ -5,8 +5,8 @@ import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Admin - Zawa Energy Hub',
-  description: 'Manage Zawa Energy Hub solar solutions.',
+  title: 'Admin - Zawa Soler Energy ',
+  description: 'Manage Zawa Soler Energy  solutions.',
 };
 
 export default function AdminLayout({

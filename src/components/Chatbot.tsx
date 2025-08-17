@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -55,12 +56,15 @@ export default function Chatbot() {
         }
     }, [isOpen]);
 
-    const sendMessage = async () => {
-        if (!input.trim() || isLoading) return;
+    const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+    const sendMessage = async (messageText?: string) => {
+        const messageToSend = messageText || input;
+        if (!messageToSend.trim() || isLoading) return;
 
         const userMessage: Message = {
             role: 'user',
-            content: input,
+            content: messageToSend,
             timestamp: new Date()
         };
 
@@ -68,13 +72,18 @@ export default function Chatbot() {
         setInput('');
         setIsLoading(true);
 
+        // Create new AbortController for this request
+        const controller = new AbortController();
+        setAbortController(controller);
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: input })
+                body: JSON.stringify({ message: messageToSend }),
+                signal: controller.signal
             });
 
             const data = await response.json();
@@ -87,14 +96,30 @@ export default function Chatbot() {
 
             setMessages(prev => [...prev, assistantMessage]);
         } catch (error) {
-            console.error('Error:', error);
-            setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: 'Sorry, I encountered an error. Please try again.',
-                timestamp: new Date()
-            }]);
+            if (error instanceof Error && error.name === 'AbortError') {
+                // Request was aborted
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: 'Request was stopped.',
+                    timestamp: new Date()
+                }]);
+            } else {
+                console.error('Error:', error);
+                setMessages(prev => [...prev, {
+                    role: 'assistant',
+                    content: 'Sorry, I encountered an error. Please try again.',
+                    timestamp: new Date()
+                }]);
+            }
         } finally {
             setIsLoading(false);
+            setAbortController(null);
+        }
+    };
+
+    const stopMessage = () => {
+        if (abortController) {
+            abortController.abort();
         }
     };
 
@@ -141,9 +166,12 @@ export default function Chatbot() {
                 <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200 animate-slideUp">
                     {/* Header */}
                     <div className="bg-muted/40 text-foreground p-4 rounded-t-lg flex justify-between items-center border-b">
-                        <div>
-                            <h3 className="font-semibold text-lg">Zawa Solar Energy</h3>
-                            <p className="text-sm opacity-90">Your Solar Solution Expert</p>
+                        <div className="flex items-center gap-3">
+                            <Image src="/icon.png" alt="Zawa Solar Energy" width={40} height={40} className="rounded-full" />
+                            <div>
+                                <h3 className="font-semibold text-lg">Zawa Solar Energy</h3>
+                                <p className="text-sm opacity-90">Your Solar Solution Expert</p>
+                            </div>
                         </div>
                         <button
                             onClick={() => setIsOpen(false)}
@@ -203,7 +231,10 @@ export default function Chatbot() {
                             {quickActions.map((action, index) => (
                                 <button
                                     key={index}
-                                    onClick={() => setInput(action)}
+                                    onClick={() => {
+                                        setInput(action); // Set input to show the suggestion
+                                        sendMessage(action); // Send the message directly
+                                    }}
                                     className="text-xs bg-muted/40 hover:bg-muted/60 text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-full transition-all duration-200"
                                 >
                                     {action}
@@ -225,13 +256,22 @@ export default function Chatbot() {
                                 disabled={isLoading}
                             />
                             <button
-                                onClick={sendMessage}
-                                disabled={!input.trim() || isLoading}
-                                className="bg-muted hover:bg-muted/80 text-foreground px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={isLoading ? stopMessage : () => sendMessage()}
+                                disabled={!isLoading && !input.trim()}
+                                className={`px-4 py-2 rounded-lg transition-colors ${isLoading
+                                        ? 'bg-red-500 hover:bg-red-600 text-white'
+                                        : 'bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50 disabled:cursor-not-allowed'
+                                    }`}
                             >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                                    <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
-                                </svg>
+                                {isLoading ? (
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                        <rect x="6" y="6" width="12" height="12" fill="currentColor" />
+                                    </svg>
+                                ) : (
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                        <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
+                                    </svg>
+                                )}
                             </button>
                         </div>
                     </div>

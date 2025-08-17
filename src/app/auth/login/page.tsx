@@ -91,7 +91,7 @@ export default function LoginPage() {
       <CardHeader className="space-y-1 text-center">
         <CardTitle className="font-headline text-2xl">Welcome Back</CardTitle>
         <CardDescription>
-          Log in to your Zawa Energy Hub account.
+          Log in to your Zawa Soler Energy  account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -131,9 +131,9 @@ export default function LoginPage() {
               )}
             />
             <div className="flex items-center justify-between">
-                <Link href="#" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                </Link>
+              <Link href="#" className="text-sm text-primary hover:underline">
+                Forgot password?
+              </Link>
             </div>
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? 'Logging In...' : 'Log In'}

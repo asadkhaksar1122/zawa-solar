@@ -359,10 +359,10 @@ export function UserHeader() {
                     <FormLabel>Current Password</FormLabel>
                     <FormControl>
                       <div className="relative">
-                        <Input 
-                          type={showPassword ? "text" : "password"} 
-                          placeholder="Enter your current password" 
-                          {...field} 
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Enter your current password"
+                          {...field}
                         />
                         <Button
                           type="button"

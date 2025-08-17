@@ -146,7 +146,7 @@ export default function HomePage() {
         {/* About Us Section (Placeholder) */}
         <section id="about" className="py-16 bg-muted/30">
           <div className="container mx-auto text-center px-4">
-            <h2 className="font-headline text-3xl font-semibold mb-4">About Zawa Energy Hub</h2>
+            <h2 className="font-headline text-3xl font-semibold mb-4">About Zawa Soler Energy </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
               We are dedicated to providing accessible and affordable solar energy solutions to help you reduce your carbon footprint and save on energy costs. Our team of experts is passionate about renewable energy and committed to delivering excellence.
             </p>
