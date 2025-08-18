@@ -2,11 +2,12 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { ReduxProvider } from '@/lib/redux/ReduxProvider';
-import { NextAuthProvider } from './NextAuthProvider'; // We'll create this next
+import { NextAuthProvider } from './NextAuthProvider';
+import { Toaster } from 'sonner'; // We'll create this next
 import Chatbot from '@/components/Chatbot';
 
 export const metadata: Metadata = {
-  title: 'Zawa Energy Hub',
+  title: 'Zawa Soler Energy',
   description: 'Your gateway to solar energy solutions.',
 };
 
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <NextAuthProvider>
           <ReduxProvider>
+            <Toaster richColors position="top-center" closeButton />
             {children}
             <Chatbot></Chatbot>
           </ReduxProvider>

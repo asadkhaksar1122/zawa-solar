@@ -137,7 +137,7 @@ export function UserHeader() {
 
   const navLinks = [
     { href: '/', label: 'Solutions', activeCondition: () => pathname === '/' || pathname.startsWith('/solutions') },
-    { href: '/about', label: 'About Us', activeCondition: () => pathname === '/' && !!(typeof window !== 'undefined' && window.location.hash === '#about') || pathname === '/#about' },
+    { href: '/about', label: 'About Us', activeCondition: () => pathname === '/about' },
     { href: '/contact', label: 'Contact', activeCondition: () => pathname === '/contact' },
   ];
 

@@ -15,14 +15,10 @@ const parseMarkdown = (text: string) => {
         .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold text-gray-800 mt-4 mb-2">$1</h3>')
         .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold text-gray-800 mt-4 mb-2">$1</h2>')
         .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold text-gray-800 mt-4 mb-2">$1</h1>')
-        .replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, (match, alt, src) => {
-            return `<div class="my-3"><img src="${src}" alt="${alt}" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm block" style="display: block !important;" /></div>`;
-        })
         .replace(/Image: ([^\s\n]+)/g, (match, imagePath) => {
             const cleanPath = imagePath.trim();
             return `<div class="my-3"><img src="${cleanPath}" alt="Team member" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm block" style="display: block !important;" /></div>`;
         })
-        .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium transition-colors mt-2 mr-2">$1 <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18 13V19C18 19.5304 17.7893 20.0391 17.4142 20.4142C17.0391 20.7893 16.5304 21 16 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V8C3 7.46957 3.21071 6.96086 3.58579 6.58579C3.96086 6.21071 4.46957 6 5 6H11M15 3H21V9M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>')
         .replace(/(\+\d{12,15})/g, '<span class="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-green-600 hover:text-green-800 transition-colors cursor-pointer" title="Copy number">📋</span></span>')
         .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" title="Copy email">📋</span></span>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -31,6 +27,7 @@ const parseMarkdown = (text: string) => {
 
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
+    const [isAnimating, setIsAnimating] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         {
             role: 'assistant',
@@ -52,11 +49,21 @@ export default function Chatbot() {
 
     useEffect(() => {
         if (isOpen) {
+            setIsAnimating(true);
             scrollToBottom();
         }
     }, [isOpen]);
 
     const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+    const handleToggleChat = () => {
+        if (isOpen) {
+            setIsAnimating(false);
+            setTimeout(() => setIsOpen(false), 300);
+        } else {
+            setIsOpen(true);
+        }
+    };
 
     const sendMessage = async (messageText?: string) => {
         const messageToSend = messageText || input;
@@ -127,55 +134,246 @@ export default function Chatbot() {
 
     return (
         <>
+            <style jsx>{`
+                @keyframes expandFromButton {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0) translateX(200px) translateY(300px);
+                        transform-origin: bottom right;
+                    }
+                    30% {
+                        opacity: 0.5;
+                        transform: scale(0.3) translateX(150px) translateY(200px);
+                    }
+                    60% {
+                        opacity: 0.8;
+                        transform: scale(0.7) translateX(50px) translateY(100px);
+                    }
+                    80% {
+                        opacity: 0.95;
+                        transform: scale(1.05) translateX(0) translateY(0);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: scale(1) translateX(0) translateY(0);
+                        transform-origin: bottom right;
+                    }
+                }
+
+                @keyframes collapseToButton {
+                    0% {
+                        opacity: 1;
+                        transform: scale(1) translateX(0) translateY(0);
+                        transform-origin: bottom right;
+                    }
+                    20% {
+                        opacity: 0.95;
+                        transform: scale(0.95) translateX(10px) translateY(10px);
+                    }
+                    50% {
+                        opacity: 0.7;
+                        transform: scale(0.5) translateX(100px) translateY(150px);
+                    }
+                    80% {
+                        opacity: 0.3;
+                        transform: scale(0.2) translateX(180px) translateY(280px);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: scale(0) translateX(200px) translateY(300px);
+                        transform-origin: bottom right;
+                    }
+                }
+
+                @keyframes popIn {
+                    0% {
+                        transform: scale(0) rotate(180deg);
+                        opacity: 0;
+                    }
+                    50% {
+                        transform: scale(1.1) rotate(90deg);
+                    }
+                    100% {
+                        transform: scale(1) rotate(0deg);
+                        opacity: 1;
+                    }
+                }
+
+                @keyframes fadeInUp {
+                    0% {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    100% {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                @keyframes bounceIn {
+                    0% {
+                        opacity: 0;
+                        transform: scale(0.3);
+                    }
+                    50% {
+                        opacity: 1;
+                        transform: scale(1.05);
+                    }
+                    70% {
+                        transform: scale(0.9);
+                    }
+                    100% {
+                        transform: scale(1);
+                    }
+                }
+
+                @keyframes shimmer {
+                    0% {
+                        background-position: -1000px 0;
+                    }
+                    100% {
+                        background-position: 1000px 0;
+                    }
+                }
+
+                .animate-expandFromButton {
+                    animation: expandFromButton 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                }
+
+                .animate-collapseToButton {
+                    animation: collapseToButton 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                }
+
+                .animate-popIn {
+                    animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+
+                .animate-fadeInUp {
+                    animation: fadeInUp 0.5s ease-out forwards;
+                }
+
+                .animate-fadeInUp-delay-1 {
+                    animation: fadeInUp 0.5s ease-out 0.1s forwards;
+                    opacity: 0;
+                }
+
+                .animate-fadeInUp-delay-2 {
+                    animation: fadeInUp 0.5s ease-out 0.2s forwards;
+                    opacity: 0;
+                }
+
+                .animate-fadeInUp-delay-3 {
+                    animation: fadeInUp 0.5s ease-out 0.3s forwards;
+                    opacity: 0;
+                }
+
+                .animate-bounceIn {
+                    animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+
+                .shimmer {
+                    background: linear-gradient(
+                        90deg,
+                        transparent 0%,
+                        rgba(255, 255, 255, 0.1) 50%,
+                        transparent 100%
+                    );
+                    background-size: 1000px 100%;
+                    animation: shimmer 2s infinite;
+                }
+
+                .chat-button-rotate {
+                    transition: transform 0.3s ease;
+                }
+
+                .chat-button-rotate.active {
+                    transform: rotate(90deg) scale(0.9);
+                }
+
+                .pulse-ring {
+                    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+                }
+
+                @keyframes pulse-ring {
+                    0% {
+                        transform: scale(0.95);
+                        opacity: 1;
+                    }
+                    100% {
+                        transform: scale(1.4);
+                        opacity: 0;
+                    }
+                }
+            `}</style>
+
             {/* Chat Button */}
             <div className="fixed bottom-0 right-4 mb-4 z-50 group">
-                <button
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="bg-muted text-foreground rounded-full p-4 shadow-lg hover:bg-muted/80 transition-all duration-300 border relative"
-                    aria-label="Open chat"
-                >
-                    <div className="relative">
-                        <svg
-                            width="24"
-                            height="24"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            className="transition-transform group-hover:scale-110"
-                        >
-                            <path
-                                d="M12 2C6.48 2 2 6.48 2 12C2 13.85 2.5 15.55 3.35 17L2 22L7 20.65C8.45 21.5 10.15 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM8 11H16V13H8V11ZM8 7H16V9H8V7ZM8 15H13V17H8V15Z"
-                                fill="currentColor"
-                            />
-                        </svg>
-                        {!isOpen && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-                        )}
-                    </div>
-                </button>
-                {/* Hover Tooltip */}
-                <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
-                    <div className="bg-foreground text-background px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-lg">
-                        Chat with AI
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-foreground"></div>
-                    </div>
+                <div className="relative">
+                    {/* Pulse ring effect when closed */}
+                    {!isOpen && (
+                        <div className="absolute inset-0 bg-muted rounded-full pulse-ring"></div>
+                    )}
+                    <button
+                        onClick={handleToggleChat}
+                        className={`bg-muted text-foreground rounded-full p-4 shadow-lg hover:bg-muted/80 transition-all duration-300 border relative transform hover:scale-110 ${isOpen ? 'scale-95 bg-muted/60' : 'animate-bounceIn'
+                            }`}
+                        aria-label="Open chat"
+                    >
+                        <div className={`relative chat-button-rotate ${isOpen ? 'active' : ''}`}>
+                            <svg
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                className="transition-transform"
+                            >
+                                {isOpen ? (
+                                    <path
+                                        d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z"
+                                        fill="currentColor"
+                                    />
+                                ) : (
+                                    <path
+                                        d="M12 2C6.48 2 2 6.48 2 12C2 13.85 2.5 15.55 3.35 17L2 22L7 20.65C8.45 21.5 10.15 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM8 11H16V13H8V11ZM8 7H16V9H8V7ZM8 15H13V17H8V15Z"
+                                        fill="currentColor"
+                                    />
+                                )}
+                            </svg>
+                            {!isOpen && (
+                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                            )}
+                        </div>
+                    </button>
                 </div>
+                {/* Hover Tooltip */}
+                {!isOpen && (
+                    <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none">
+                        <div className="bg-foreground text-background px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap shadow-lg animate-popIn">
+                            Chat with AI
+                            <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-foreground"></div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Chat Window */}
             {isOpen && (
-                <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200 animate-slideUp">
+                <div className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200 ${isAnimating ? 'animate-expandFromButton' : 'animate-collapseToButton'
+                    }`}>
                     {/* Header */}
-                    <div className="bg-muted/40 text-foreground p-4 rounded-t-lg flex justify-between items-center border-b">
+                    <div className="bg-muted/40 text-foreground p-4 rounded-t-lg flex justify-between items-center border-b animate-fadeInUp shimmer">
                         <div className="flex items-center gap-3">
-                            <Image src="/icon.png" alt="Zawa Solar Energy" width={40} height={40} className="rounded-full" />
+                            <div className="animate-bounceIn">
+                                <Image src="/icon.png" alt="Zawa Solar Energy" width={40} height={40} className="rounded-full" />
+                            </div>
                             <div>
-                                <h3 className="font-semibold text-lg">Zawa Solar Energy</h3>
-                                <p className="text-sm opacity-90">Your Solar Solution Expert</p>
+                                <h3 className="font-semibold text-lg animate-fadeInUp-delay-1">Zawa Solar Energy</h3>
+                                <p className="text-sm opacity-90 animate-fadeInUp-delay-2">Your Solar Solution Expert</p>
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsOpen(false)}
-                            className="text-muted-foreground hover:bg-muted/20 rounded-full p-2 transition-colors"
+                            onClick={handleToggleChat}
+                            className="text-muted-foreground hover:bg-muted/20 rounded-full p-2 transition-all hover:rotate-90 duration-300 animate-fadeInUp-delay-3"
                             aria-label="Close chat"
                         >
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -192,12 +390,17 @@ export default function Chatbot() {
                         {messages.map((message, index) => (
                             <div
                                 key={index}
-                                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+                                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeInUp`}
+                                style={{
+                                    opacity: 0,
+                                    animation: 'fadeInUp 0.5s ease-out forwards',
+                                    animationDelay: `${Math.min(index * 0.1, 0.5)}s`
+                                }}
                             >
                                 <div
-                                    className={`max-w-[80%] p-3 rounded-lg ${message.role === 'user'
-                                        ? 'bg-muted text-foreground rounded-br-none border'
-                                        : 'bg-background text-foreground shadow-sm rounded-bl-none border'
+                                    className={`max-w-[80%] p-3 rounded-lg transform transition-all duration-300 hover:scale-[1.02] ${message.role === 'user'
+                                        ? 'bg-muted text-foreground rounded-br-none border hover:shadow-md'
+                                        : 'bg-background text-foreground shadow-sm rounded-bl-none border hover:shadow-lg'
                                         }`}
                                 >
                                     <p
@@ -211,12 +414,12 @@ export default function Chatbot() {
                             </div>
                         ))}
                         {isLoading && (
-                            <div className="flex justify-start animate-fadeIn">
+                            <div className="flex justify-start animate-fadeInUp">
                                 <div className="bg-background p-3 rounded-lg shadow-sm border rounded-bl-none">
                                     <div className="flex space-x-2">
                                         <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-100"></div>
-                                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce delay-200"></div>
+                                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                        <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                                     </div>
                                 </div>
                             </div>
@@ -225,17 +428,21 @@ export default function Chatbot() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="px-4 py-3 border-t bg-background">
+                    <div className="px-4 py-3 border-t bg-background animate-fadeInUp-delay-2">
                         <p className="text-xs text-muted-foreground mb-2">Quick questions:</p>
                         <div className="flex flex-wrap gap-2">
                             {quickActions.map((action, index) => (
                                 <button
                                     key={index}
                                     onClick={() => {
-                                        setInput(action); // Set input to show the suggestion
-                                        sendMessage(action); // Send the message directly
+                                        setInput(action);
+                                        sendMessage(action);
                                     }}
-                                    className="text-xs bg-muted/40 hover:bg-muted/60 text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-full transition-all duration-200"
+                                    className="text-xs bg-muted/40 hover:bg-muted/60 text-muted-foreground hover:text-foreground px-3 py-1.5 rounded-full transition-all duration-200 transform hover:scale-105 hover:shadow-md animate-fadeInUp"
+                                    style={{
+                                        animationDelay: `${0.3 + index * 0.1}s`,
+                                        opacity: 0
+                                    }}
                                 >
                                     {action}
                                 </button>
@@ -244,7 +451,7 @@ export default function Chatbot() {
                     </div>
 
                     {/* Input */}
-                    <div className="p-4 border-t bg-background rounded-b-lg">
+                    <div className="p-4 border-t bg-background rounded-b-lg animate-fadeInUp-delay-3">
                         <div className="flex space-x-2">
                             <input
                                 type="text"
@@ -252,23 +459,23 @@ export default function Chatbot() {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                                 placeholder="Type your message..."
-                                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-muted bg-background"
+                                className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-muted bg-background transition-all duration-300 focus:shadow-lg"
                                 disabled={isLoading}
                             />
                             <button
                                 onClick={isLoading ? stopMessage : () => sendMessage()}
                                 disabled={!isLoading && !input.trim()}
-                                className={`px-4 py-2 rounded-lg transition-colors ${isLoading
-                                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                                        : 'bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50 disabled:cursor-not-allowed'
+                                className={`px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105 ${isLoading
+                                    ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                                    : 'bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg'
                                     }`}
                             >
                                 {isLoading ? (
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="animate-spin">
                                         <rect x="6" y="6" width="12" height="12" fill="currentColor" />
                                     </svg>
                                 ) : (
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="transform transition-transform hover:translate-x-1">
                                         <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor" />
                                     </svg>
                                 )}
