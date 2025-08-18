@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
-import { GraduationCap, Briefcase, Award, Sparkles } from "lucide-react";
+import { GraduationCap, Briefcase, Award, Sparkles, Mail, Linkedin } from "lucide-react";
 import { motion } from 'framer-motion';
 
 interface TeamMember {
@@ -27,8 +27,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             role: "CEO",
             img: "/wahid.png",
             email: "john.smith@zawasolar.com",
-            linkedin: "linkedin.com/in/johnsmith",
-            education: "Master in te renewable energy, ",
+            linkedin: "https://linkedin.com/in/johnsmith",
+            education: "Masters in Renewable Energy",
             experience: "10+ years in renewable energy",
             achievements: "Led 500+ solar installations"
         },
@@ -37,8 +37,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             role: "Senior Manager",
             img: "/umair.png",
             email: "sarah.johnson@zawasolar.com",
-            linkedin: "linkedin.com/in/sarahjohnson",
-            education: "B-tech in the civil engineering",
+            linkedin: "https://linkedin.com/in/sarahjohnson",
+            education: "B.Tech in Civil Engineering",
             experience: "12+ years in solar technology",
             achievements: "30+ patents in solar innovation"
         },
@@ -47,19 +47,19 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             role: "Lead Engineer",
             img: "/sohaibhassan.jpg",
             email: "michael.chen@zawasolar.com",
-            linkedin: "linkedin.com/in/michaelchen",
-            education: "Diploma in the electrical engineering,",
+            linkedin: "https://linkedin.com/in/michaelchen",
+            education: "Diploma in Electrical Engineering",
             experience: "1+ years in system design",
             achievements: "Certified Solar Professional (CSP)"
         },
         {
             name: "Asad Khan",
-            role: "Techninal Manager",
+            role: "Technical Manager",
             img: "/asadimg.jpg",
             email: "emily.brown@zawasolar.com",
-            linkedin: "linkedin.com/in/emilybrown",
-            education: "The software engineer ",
-            experience: "1 year experience ",
+            linkedin: "https://linkedin.com/in/emilybrown",
+            education: "Software Engineer",
+            experience: "1+ years of experience",
             achievements: "99% customer satisfaction rate"
         },
     ];
@@ -200,6 +200,8 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
 
     return (
         <div className="py-16 relative overflow-hidden">
+            <div className="pointer-events-none absolute -top-20 -left-20 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-primary/10 blur-3xl" />
             <div className="container mx-auto px-4">
                 <motion.h2
                     className="text-3xl font-bold text-center mb-12 text-foreground"
@@ -220,17 +222,22 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                     {members.map((member, idx) => (
                         <motion.div
                             key={idx}
-                            className="relative perspective-1000"
+                            className="relative"
                             variants={teamCardVariants}
                             initial="hidden"
                             whileInView="visible"
-                            viewport={{ once: true }}
-                            whileHover="hover"
-                            animate="rest"
-                            onHoverStart={() => setHovered(idx)}
-                            onHoverEnd={() => setHovered(null)}
+                            viewport={{ once: true, amount: 0.2 }}
                         >
-                            <motion.div variants={cardVariants} className="relative">
+                            <motion.div
+                                variants={cardVariants}
+                                className="relative will-change-transform"
+                                initial="rest"
+                                animate="rest"
+                                whileHover="hover"
+                                style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
+                                onHoverStart={() => setHovered(idx)}
+                                onHoverEnd={() => setHovered(null)}
+                            >
                                 {/* Glow Effect Behind Card */}
                                 <motion.div
                                     className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-lg blur-xl"
@@ -252,12 +259,12 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                     <Sparkles size={16} />
                                 </motion.div>
 
-                                <Card className="border-border/40 overflow-hidden h-full cursor-pointer relative bg-background/95 backdrop-blur-sm">
+                                <Card className="rounded-xl border border-border/50 overflow-hidden h-full cursor-pointer relative bg-gradient-to-br from-background/95 to-background/80 backdrop-blur-md">
                                     <CardContent className="p-6 text-center">
                                         {/* Front View */}
-                                        <motion.div variants={frontVariants} transition={{ duration: 0.25 }}>
+                                        <motion.div variants={frontVariants} transition={{ duration: 0.25 }} style={{ backfaceVisibility: 'hidden' }}>
                                             <motion.div
-                                                className="relative h-[150px] w-[150px] mx-auto mb-4 cursor-pointer"
+                                                className="relative h-[150px] w-[150px] mx-auto mb-4 cursor-pointer rounded-full ring-2 ring-border/50 hover:ring-primary/60 transition-colors duration-300"
                                                 variants={imageVariants}
                                             >
                                                 <motion.div
@@ -297,12 +304,13 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
 
                                         {/* Hover View */}
                                         <motion.div
-                                            className={`absolute inset-0 p-6 bg-background flex flex-col justify-center ${hovered === idx ? 'pointer-events-auto z-20' : 'pointer-events-none z-10'}`}
+                                            className={`absolute inset-0 p-6 bg-background/98 backdrop-blur-sm flex flex-col justify-center ${hovered === idx ? 'pointer-events-auto z-20' : 'pointer-events-none z-10'}`}
                                             variants={overlayVariants}
                                             transition={{ duration: 0.28, ease: 'easeOut' }}
+                                            style={{ backfaceVisibility: 'hidden' }}
                                         >
                                             <motion.div
-                                                className="relative h-[80px] w-[80px] mx-auto mb-3"
+                                                className="relative h-[80px] w-[80px] mx-auto mb-3 rounded-full overflow-hidden ring-2 ring-primary/40"
                                                 animate={hovered === idx ? {
                                                     rotate: [0, 360],
                                                 } : {}}
@@ -356,6 +364,24 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                                     <span className="text-muted-foreground">{member.achievements}</span>
                                                 </motion.div>
                                             </motion.div>
+                                            <div className="mt-4 flex items-center justify-center gap-3">
+                                                <a
+                                                    href={`mailto:${member.email}`}
+                                                    className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                                    aria-label={`Email ${member.name}`}
+                                                >
+                                                    <Mail className="h-4 w-4" />
+                                                </a>
+                                                <a
+                                                    href={member.linkedin.startsWith('http') ? member.linkedin : `https://${member.linkedin}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                                                    aria-label={`${member.name} on LinkedIn`}
+                                                >
+                                                    <Linkedin className="h-4 w-4" />
+                                                </a>
+                                            </div>
                                         </motion.div>
                                     </CardContent>
                                 </Card>
