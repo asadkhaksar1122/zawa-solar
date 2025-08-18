@@ -179,11 +179,11 @@ export default function ContactPage() {
     <div className="relative flex flex-col min-h-screen overflow-hidden">
       {/* Enhanced animated background elements */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <GradientOrb className="w-[600px] h-[600px] bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 -top-72 -left-72" />
-        <GradientOrb className="w-[500px] h-[500px] bg-gradient-to-br from-blue-500/20 via-cyan-500/20 to-teal-500/20 -bottom-60 -right-60" />
-        <GradientOrb className="w-80 h-80 bg-gradient-to-br from-pink-500/20 via-rose-500/20 to-orange-500/20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        <GradientOrb className="w-64 h-64 bg-gradient-to-br from-violet-500/15 via-indigo-500/15 to-blue-500/15 top-1/4 right-1/4" />
-        <GradientOrb className="w-48 h-48 bg-gradient-to-br from-emerald-500/15 via-green-500/15 to-lime-500/15 bottom-1/4 left-1/4" />
+        <GradientOrb className="w-[600px] h-[600px] bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 -top-72 -left-72" />
+        <GradientOrb className="w-[500px] h-[500px] bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 -bottom-60 -right-60" />
+        <GradientOrb className="w-80 h-80 bg-gradient-to-br from-primary/10 via-primary/8 to-primary/5 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+        <GradientOrb className="w-64 h-64 bg-gradient-to-br from-primary/8 via-primary/6 to-primary/4 top-1/4 right-1/4" />
+        <GradientOrb className="w-48 h-48 bg-gradient-to-br from-primary/6 via-primary/4 to-primary/2 bottom-1/4 left-1/4" />
       </div>
 
       {/* Enhanced floating particles with different sizes and colors */}
@@ -192,8 +192,8 @@ export default function ContactPage() {
           <motion.div
             key={i}
             className={`absolute rounded-full ${i % 3 === 0 ? 'w-2 h-2 bg-primary/30' :
-              i % 3 === 1 ? 'w-1.5 h-1.5 bg-purple-500/25' :
-                'w-1 h-1 bg-cyan-500/20'
+              i % 3 === 1 ? 'w-1.5 h-1.5 bg-primary/25' :
+                'w-1 h-1 bg-primary/20'
               }`}
             style={{
               left: `${Math.random() * 100}%`,
@@ -218,8 +218,8 @@ export default function ContactPage() {
       {/* Mesh gradient overlay */}
       <div className="pointer-events-none absolute inset-0 -z-10 opacity-30 dark:opacity-20">
         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/5 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-purple-500/5 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-blue-500/5 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tl from-transparent via-primary/3 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-primary/4 to-transparent" />
       </div>
 
       <UserHeader />
@@ -239,7 +239,7 @@ export default function ContactPage() {
             {/* Hero background glow */}
             <div className="absolute inset-0 -z-10">
               <motion.div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-primary/20 via-purple-500/20 to-pink-500/20 rounded-full blur-3xl"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 rounded-full blur-3xl"
                 animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.3, 0.6, 0.3],
@@ -259,9 +259,9 @@ export default function ContactPage() {
                 transition={{ duration: 1.2, ease: "easeOut" }}
                 className="mb-8"
               >
-                <h1 className="font-headline text-6xl sm:text-7xl lg:text-8xl font-black mb-6 tracking-tight leading-none">
+                <h1 className="font-headline text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 tracking-tight leading-none">
                   <motion.span
-                    className="inline-block bg-gradient-to-br from-foreground via-purple-600 to-pink-600 bg-clip-text text-transparent drop-shadow-2xl"
+                    className="inline-block bg-gradient-to-br from-foreground via-primary to-primary/80 bg-clip-text text-transparent drop-shadow-2xl"
                     animate={{
                       backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                     }}
@@ -291,7 +291,7 @@ export default function ContactPage() {
                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                   />
                   <motion.div
-                    className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-purple-600 shadow-lg shadow-primary/50"
+                    className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/50"
                     animate={{
                       scale: [1, 1.2, 1],
                       boxShadow: [
@@ -328,11 +328,11 @@ export default function ContactPage() {
                 transition={{ delay: 1, duration: 0.8 }}
               >
                 <motion.div
-                  className="px-6 py-2 rounded-full bg-gradient-to-r from-primary/10 via-purple-500/10 to-pink-500/10 border border-primary/20 backdrop-blur-sm"
+                  className="px-6 py-2 rounded-full bg-gradient-to-r from-primary/10 via-primary/8 to-primary/6 border border-primary/20 backdrop-blur-sm"
                   whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <span className="text-sm font-semibold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                  <span className="text-sm font-semibold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                     ✨ Let&apos;s connect and create something amazing together
                   </span>
                 </motion.div>
@@ -390,7 +390,7 @@ export default function ContactPage() {
                                 rel="noopener noreferrer"
                               >
                                 <MessageCircle className="mr-2 h-4 w-4" />
-                                Chat on {wa.value}
+                                <span className='hidden sm:inline'> Chat on </span>{wa.value}
                                 <ExternalLink className="ml-2 h-3.5 w-3.5 opacity-70" />
                               </Link>
                             </Button>
@@ -470,7 +470,7 @@ export default function ContactPage() {
                             >
                               <Link href={`mailto:${email.value}`}>
                                 <Mail className="mr-2 h-4 w-4" />
-                                Email {email.value}
+                                <span className='hidden sm:inline'>  Email</span> {email.value}
                               </Link>
                             </Button>
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -513,7 +513,7 @@ export default function ContactPage() {
             {contactSettings.phoneNumbers?.length > 0 && (
               <motion.div variants={item} whileHover={cardHover}>
                 <FloatingElement delay={0.4}>
-                  <Card variant="neon" hover glow className="group h-full relative overflow-hidden">
+                  <Card variant="holographic" hover glow className="group h-full relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-purple-600/15 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-purple-500 to-primary opacity-60" />
                     <CardHeader className="items-center text-center pt-8">
@@ -527,7 +527,7 @@ export default function ContactPage() {
                         transition={{ duration: 0.6, ease: "easeOut" }}
                       >
                         <Phone className="h-9 w-9" />
-                        <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-white/20 to-transparent" />
+                        <div className="absolute inset-0 rounded-3xl  to-transparent" />
                       </motion.div>
                       <CardTitle className="font-headline text-2xl">Call Us</CardTitle>
                       <CardDescription className="text-base">Speak to our team</CardDescription>
@@ -542,10 +542,10 @@ export default function ContactPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
                           >
-                            <Button asChild size="lg" className="flex-1 shadow-lg hover:shadow-xl transition-all">
+                            <Button asChild size="lg" className="flex-1 bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all">
                               <Link href={`tel:${phone.value}`}>
                                 <Phone className="mr-2 h-4 w-4" />
-                                Call {phone.value}
+                                <span className='hidden sm:inline'> Call</span> {phone.value}
                               </Link>
                             </Button>
                             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>

@@ -8,6 +8,7 @@ import {
     TeamSection,
     ContactCTASection
 } from "@/components/about";
+import { UserFooter } from "@/components/user/Footer";
 
 const About = () => {
     const teamMembers = [
@@ -60,7 +61,8 @@ const About = () => {
             <MissionSection />
             <ValuesSection />
             <TeamSection teamMembers={teamMembers} />
-            <ContactCTASection />
+            {/* <ContactCTASection /> */}
+            <UserFooter />
         </div>
     );
 };

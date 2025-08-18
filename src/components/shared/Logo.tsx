@@ -11,8 +11,8 @@ interface LogoProps {
 export function Logo({ className, iconSize = 60, textSize = 'text-2xl', href = '/' }: LogoProps) {
   return (
     <Link href={href} className={`flex items-center gap-2 text-primary ${className}`}>
-      <Image src="/icon.png" alt="Zawa Soler Energy " width={iconSize} height={iconSize} className="object-contain rounded-full" />
-      <span className={`font-headline font-semibold ${textSize}`}>Zawa Soler Energy </span>
+      <Image src="/icon.png" alt="Zawa Soler Energy " width={iconSize} height={iconSize} className="object-contain rounded-full flex-shrink-0" />
+      <span className={`font-headline font-semibold ${textSize} whitespace-nowrap`}>Zawa Soler Energy</span>
     </Link>
   );
 }

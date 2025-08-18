@@ -151,10 +151,10 @@ export function UserHeader() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4">
-        <Logo />
+        <Logo iconSize={40} textSize="text-lg sm:text-xl md:text-2xl" className="min-w-0 flex-shrink" />
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 sm:gap-2">
+        <nav className="hidden md:flex items-center gap-1 lg:gap-2 flex-shrink-0">
           {navLinks.map((link) => (
             <Button
               key={link.href}

@@ -15,6 +15,10 @@ const parseMarkdown = (text: string) => {
         .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold text-gray-800 mt-4 mb-2">$1</h3>')
         .replace(/^## (.*$)/gm, '<h2 class="text-xl font-semibold text-gray-800 mt-4 mb-2">$1</h2>')
         .replace(/^# (.*$)/gm, '<h1 class="text-2xl font-bold text-gray-800 mt-4 mb-2">$1</h1>')
+        .replace(/!\[([^\]]*?)\]\(([^\)]+)\)/g, (match, altText, imagePath) => {
+            const cleanPath = imagePath.trim();
+            return `<div class="my-3"><img src="${cleanPath}" alt="${altText || 'Team member'}" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm block" style="display: block !important;" /></div>`;
+        })
         .replace(/Image: ([^\s\n]+)/g, (match, imagePath) => {
             const cleanPath = imagePath.trim();
             return `<div class="my-3"><img src="${cleanPath}" alt="Team member" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm block" style="display: block !important;" /></div>`;
@@ -27,6 +31,7 @@ const parseMarkdown = (text: string) => {
 
 export default function Chatbot() {
     const [isOpen, setIsOpen] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
     const [isAnimating, setIsAnimating] = useState(false);
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -59,9 +64,14 @@ export default function Chatbot() {
     const handleToggleChat = () => {
         if (isOpen) {
             setIsAnimating(false);
-            setTimeout(() => setIsOpen(false), 300);
+            setTimeout(() => {
+                setIsOpen(false);
+                setIsVisible(false);
+            }, 300);
         } else {
             setIsOpen(true);
+            setIsVisible(true);
+            setIsAnimating(true);
         }
     };
 
@@ -138,24 +148,16 @@ export default function Chatbot() {
                 @keyframes expandFromButton {
                     0% {
                         opacity: 0;
-                        transform: scale(0) translateX(200px) translateY(300px);
+                        transform: scale(0.1) translate(120px, 240px);
                         transform-origin: bottom right;
                     }
-                    30% {
-                        opacity: 0.5;
-                        transform: scale(0.3) translateX(150px) translateY(200px);
-                    }
-                    60% {
-                        opacity: 0.8;
-                        transform: scale(0.7) translateX(50px) translateY(100px);
-                    }
-                    80% {
-                        opacity: 0.95;
-                        transform: scale(1.05) translateX(0) translateY(0);
+                    50% {
+                        opacity: 0.7;
+                        transform: scale(0.8) translate(60px, 120px);
                     }
                     100% {
                         opacity: 1;
-                        transform: scale(1) translateX(0) translateY(0);
+                        transform: scale(1) translate(0, 0);
                         transform-origin: bottom right;
                     }
                 }
@@ -163,24 +165,16 @@ export default function Chatbot() {
                 @keyframes collapseToButton {
                     0% {
                         opacity: 1;
-                        transform: scale(1) translateX(0) translateY(0);
+                        transform: scale(1) translate(0, 0);
                         transform-origin: bottom right;
-                    }
-                    20% {
-                        opacity: 0.95;
-                        transform: scale(0.95) translateX(10px) translateY(10px);
                     }
                     50% {
                         opacity: 0.7;
-                        transform: scale(0.5) translateX(100px) translateY(150px);
-                    }
-                    80% {
-                        opacity: 0.3;
-                        transform: scale(0.2) translateX(180px) translateY(280px);
+                        transform: scale(0.8) translate(60px, 120px);
                     }
                     100% {
                         opacity: 0;
-                        transform: scale(0) translateX(200px) translateY(300px);
+                        transform: scale(0.1) translate(120px, 240px);
                         transform-origin: bottom right;
                     }
                 }
@@ -237,11 +231,11 @@ export default function Chatbot() {
                 }
 
                 .animate-expandFromButton {
-                    animation: expandFromButton 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+                    animation: expandFromButton 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
                 }
 
                 .animate-collapseToButton {
-                    animation: collapseToButton 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                    animation: collapseToButton 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
                 }
 
                 .animate-popIn {
@@ -357,9 +351,8 @@ export default function Chatbot() {
             </div>
 
             {/* Chat Window */}
-            {isOpen && (
-                <div className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200 ${isAnimating ? 'animate-expandFromButton' : 'animate-collapseToButton'
-                    }`}>
+            {isVisible && (
+                <div className={`fixed bottom-24 right-6 w-96 max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white rounded-lg shadow-2xl flex flex-col z-50 border border-gray-200 ${isAnimating ? 'animate-expandFromButton' : 'animate-collapseToButton'}`}>
                     {/* Header */}
                     <div className="bg-muted/40 text-foreground p-4 rounded-t-lg flex justify-between items-center border-b animate-fadeInUp shimmer">
                         <div className="flex items-center gap-3">
