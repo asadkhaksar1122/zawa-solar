@@ -57,8 +57,8 @@ export async function sendOTPEmail(email: string, otp: string, name: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string, name: string) {
-  // const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
-  const resetUrl = `${'http://localhost:9002'}/auth/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`;
+  // const resetUrl = `${'http://localhost:9002'}/auth/reset-password?token=${resetToken}`;
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
