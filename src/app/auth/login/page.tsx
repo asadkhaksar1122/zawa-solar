@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import {
   Card,
   CardContent,
@@ -47,6 +47,8 @@ export default function LoginPage() {
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const error = searchParams.get('error');
   const [customError, setCustomError] = useState<string | null>(null);
+  const [showResendOTP, setShowResendOTP] = useState(false);
+  const [userEmail, setUserEmail] = useState<string>('');
 
 
   const form = useForm<LoginFormValues>({
@@ -59,29 +61,98 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginFormValues) {
     setCustomError(null); // Clear previous custom errors
-    const result = await signIn('credentials', {
-      redirect: false, // We'll handle redirect manually
-      email: data.email,
-      password: data.password,
-      callbackUrl: callbackUrl,
-    });
+    setShowResendOTP(false);
 
-    if (result?.error) {
-      if (result.error === 'CredentialsSignin') {
+    try {
+      // First, check email verification status
+      const checkResponse = await fetch('/api/auth/check-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+        }),
+      });
+
+      const checkResult = await checkResponse.json();
+
+      if (!checkResult.userExists || !checkResult.credentialsValid) {
         setCustomError('Invalid email or password. Please try again.');
-      } else {
-        setCustomError('Login failed. Please try again.');
+        return;
       }
-    } else if (result?.ok) {
-      // Login successful
+
+      if (!checkResult.verified) {
+        setCustomError('Please verify your email before logging in.');
+        setShowResendOTP(true);
+        setUserEmail(data.email);
+        return;
+      }
+
+      // If email is verified, proceed with NextAuth login
+      const result = await signIn('credentials', {
+        redirect: false, // We'll handle redirect manually
+        email: data.email,
+        password: data.password,
+        callbackUrl: callbackUrl,
+      });
+
+      if (result?.error) {
+        setCustomError('Login failed. Please try again.');
+      } else if (result?.ok) {
+        // Login successful
+        Swal.fire({
+          icon: 'success',
+          title: 'Login Successful!',
+          timer: 1500,
+          showConfirmButton: false,
+        }).then(() => {
+          router.push(callbackUrl); // Redirect to the intended page or dashboard
+          router.refresh(); // Refresh to update session state in header
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setCustomError('An unexpected error occurred. Please try again.');
+    }
+  }
+
+  async function handleResendOTP() {
+    try {
+      const response = await fetch('/api/auth/resend-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userEmail,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Resend Failed',
+          text: result.message || 'Failed to resend OTP.',
+        });
+      } else {
+        Swal.fire({
+          icon: 'success',
+          title: 'OTP Sent!',
+          text: 'A new verification code has been sent to your email.',
+        }).then(() => {
+          router.push(`/auth/verify-otp?email=${encodeURIComponent(userEmail)}`);
+        });
+      }
+    } catch (error) {
+      console.error('Resend OTP error:', error);
       Swal.fire({
-        icon: 'success',
-        title: 'Login Successful!',
-        timer: 1500,
-        showConfirmButton: false,
-      }).then(() => {
-        router.push(callbackUrl); // Redirect to the intended page or dashboard
-        router.refresh(); // Refresh to update session state in header
+        icon: 'error',
+        title: 'Resend Error',
+        text: 'An unexpected error occurred.',
       });
     }
   }
@@ -124,15 +195,18 @@ export default function LoginPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <PasswordInput placeholder="••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div className="flex items-center justify-between">
-              <Link href="#" className="text-sm text-primary hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
                 Forgot password?
+              </Link>
+              <Link href="/auth/resend-verification" className="text-sm text-primary hover:underline">
+                Resend verification
               </Link>
             </div>
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
@@ -140,6 +214,21 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
+
+        {showResendOTP && (
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm text-blue-800 mb-2">
+              Your email is not verified. Please check your email for the verification code.
+            </p>
+            <Button
+              variant="outline"
+              onClick={handleResendOTP}
+              className="w-full"
+            >
+              Resend Verification Code
+            </Button>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col items-center space-y-2">
         <p className="mt-2 text-center text-sm text-muted-foreground">

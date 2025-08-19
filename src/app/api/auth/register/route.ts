@@ -3,10 +3,7 @@ import UserModel from '@/lib/models/user';
 import { dbConnect } from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
-// In a real app, you'd import your database connection and User model here
-// import { connectToDatabase } from '@/lib/mongodb'; // Example
-// import User from '@/models/User'; // Example
-// import bcrypt from 'bcryptjs'; // For password hashing
+import { sendOTPEmail, generateOTP } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
@@ -15,36 +12,54 @@ export async function POST(request: Request) {
     if (!fullName || !email || !password) {
       return NextResponse.json({ message: 'Missing required fields.' }, { status: 400 });
     }
+
+    await dbConnect();
+
+    // Check if user already exists
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser && existingUser.isEmailVerified) {
+      return NextResponse.json({ message: 'User already exists with this email.' }, { status: 400 });
+    }
+
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-    await dbConnect()
-    let newuser = new UserModel({
-      name: fullName,
-      email: email,
-      password: hashedPassword,
-    })
-    await newuser.save();
-    // --- IMPORTANT: Database Logic Placeholder ---
-    // In a real application, you would:
-    // 1. Connect to your database.
-    //    await connectToDatabase();
-    // 2. Check if the user already exists.
-    //    const existingUser = await User.findOne({ email });
-    //    if (existingUser) {
-    //      return NextResponse.json({ message: 'User already exists.' }, { status: 409 });
-    //    }
-    // 3. Hash the password.
-    //    const hashedPassword = await bcrypt.hash(password, 10); // 10 is salt rounds
-    // 4. Create the new user in the database.
-    //    const newUser = new User({ fullName, email, password: hashedPassword });
-    //    await newUser.save();
-    //
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // --- End of Database Logic Placeholder ---
+    if (existingUser && !existingUser.isEmailVerified) {
+      // Update existing unverified user
+      existingUser.name = fullName;
+      existingUser.password = hashedPassword;
+      existingUser.otp = otp;
+      existingUser.otpExpires = otpExpires;
+      await existingUser.save();
+    } else {
+      // Create new user
+      const newUser = new UserModel({
+        name: fullName,
+        email: email,
+        password: hashedPassword,
+        isEmailVerified: false,
+        otp: otp,
+        otpExpires: otpExpires,
+      });
+      await newUser.save();
+    }
 
+    // Send OTP email
+    const emailResult = await sendOTPEmail(email, otp, fullName);
 
-    return NextResponse.json({ message: 'User registered successfully (simulated).' }, { status: 201 });
+    if (!emailResult.success) {
+      return NextResponse.json({ message: 'Failed to send verification email. Please try again.' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      message: 'Registration initiated. Please check your email for the verification code.',
+      email: email
+    }, { status: 200 });
+
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json({ message: 'An error occurred during registration.' }, { status: 500 });

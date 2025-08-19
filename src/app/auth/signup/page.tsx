@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/ui/password-input';
 import {
   Card,
   CardContent,
@@ -92,10 +92,10 @@ export default function SignupPage() {
       } else {
         Swal.fire({
           icon: 'success',
-          title: 'Sign Up Successful!',
-          text: 'You can now log in with your credentials.',
+          title: 'Registration Initiated!',
+          text: 'Please check your email for the verification code.',
         }).then(() => {
-          router.push('/auth/login');
+          router.push(`/auth/verify-otp?email=${encodeURIComponent(data.email)}`);
         });
       }
     } catch (error) {
@@ -159,7 +159,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <PasswordInput placeholder="••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -172,7 +172,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
+                    <PasswordInput placeholder="••••••••" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -189,6 +189,12 @@ export default function SignupPage() {
           Already have an account?{' '}
           <Link href="/auth/login" className="font-medium text-primary hover:underline">
             Log in
+          </Link>
+        </p>
+        <p className="text-center text-sm text-muted-foreground">
+          Need to verify your email?{' '}
+          <Link href="/auth/resend-verification" className="font-medium text-primary hover:underline">
+            Resend verification code
           </Link>
         </p>
       </CardFooter>
