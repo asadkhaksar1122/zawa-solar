@@ -23,8 +23,8 @@ const parseMarkdown = (text: string) => {
             const cleanPath = imagePath.trim();
             return `<div class="my-3"><img src="${cleanPath}" alt="Team member" class="w-20 h-20 rounded-full object-cover border-2 border-gray-200 shadow-sm block" style="display: block !important;" /></div>`;
         })
-        .replace(/(\+\d{12,15})/g, '<span class="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-green-600 hover:text-green-800 transition-colors cursor-pointer" title="Copy number">📋</span></span>')
-        .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer" title="Copy email">📋</span></span>')
+        .replace(/(\+\d{12,15})/g, '<span class="inline-flex items-center gap-1 bg-green-100 text-green-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-green-600 hover:text-green-800 transition-colors cursor-pointer copy-btn" data-copy="$1" title="Copy number">📋</span></span>')
+        .replace(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, '<span class="inline-flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded font-mono text-sm">$1 <span class="text-blue-600 hover:text-blue-800 transition-colors cursor-pointer copy-btn" data-copy="$1" title="Copy email">📋</span></span>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>');
 };
@@ -42,11 +42,50 @@ export default function Chatbot() {
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [copySuccess, setCopySuccess] = useState<string | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
+
+    // Function to handle copying text to clipboard
+    const handleCopy = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            setCopySuccess(text);
+            setTimeout(() => setCopySuccess(null), 2000); // Hide after 2 seconds
+            console.log('Copied to clipboard:', text);
+        } catch (err) {
+            console.error('Failed to copy text: ', err);
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            setCopySuccess(text);
+            setTimeout(() => setCopySuccess(null), 2000);
+        }
+    };
+
+    // Add event listeners for copy buttons after messages update
+    useEffect(() => {
+        const copyButtons = document.querySelectorAll('.copy-btn');
+        copyButtons.forEach(button => {
+            const handleClick = () => {
+                const textToCopy = button.getAttribute('data-copy');
+                if (textToCopy) {
+                    handleCopy(textToCopy);
+                }
+            };
+            button.addEventListener('click', handleClick);
+
+            // Cleanup function to remove event listener
+            return () => button.removeEventListener('click', handleClick);
+        });
+    }, [messages]);
 
     useEffect(() => {
         scrollToBottom();
@@ -377,6 +416,16 @@ export default function Chatbot() {
                             </svg>
                         </button>
                     </div>
+
+                    {/* Copy Success Notification */}
+                    {copySuccess && (
+                        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-fadeInUp">
+                            <div className="flex items-center gap-2">
+                                <span>✓</span>
+                                <span className="text-sm">Copied: {copySuccess}</span>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Messages */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20">

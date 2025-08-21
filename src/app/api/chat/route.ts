@@ -37,53 +37,22 @@ interface TeamMember {
     achievements: string;
 }
 
-const teamMembers: TeamMember[] = [
-    {
-        name: "Wahid Amin",
-        role: "CEO",
-        img: "/wahid.png",
-        education: "Master in Renewable Energy",
-        experience: "10+ years in renewable energy",
-        achievements: "Led 500+ solar installations"
-    },
-    {
-        name: "Umair Khan",
-        role: "Senior Manager",
-        img: "/umair.png",
-        education: "B-Tech in Civil Engineering",
-        experience: "12+ years in solar technology",
-        achievements: "30+ patents in solar innovation"
-    },
-    {
-        name: "Sohaib Hassan",
-        role: "Lead Engineer",
-        img: "/sohaibhassan.jpg",
-        education: "Diploma in Electrical Engineering",
-        experience: "1+ years in system design",
-        achievements: "Certified Solar Professional (CSP)"
-    },
-    {
-        name: "Asad Khan",
-        role: "Technical Manager",
-        img: "/asadimg.jpg",
-        education: "Software Engineer",
-        experience: "1 year experience",
-        achievements: "99% customer satisfaction rate"
-    },
-];
+// Remove dummy data - will fetch from API
 
 async function fetchCompanyData() {
     try {
         // Fetch all data from your APIs with individual error handling
-        const [solutionsRes, companiesRes, contactRes] = await Promise.all([
+        const [solutionsRes, companiesRes, contactRes, teamMembersRes] = await Promise.all([
             fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/solutions`).catch(() => null),
             fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/companies`).catch(() => null),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/contact-settings`).catch(() => null)
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/contact-settings`).catch(() => null),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/team-member`).catch(() => null)
         ]);
 
         let solutions = [];
         let companies = [];
         let contact = null;
+        let teamMembers = [];
 
         // Handle solutions
         if (solutionsRes && solutionsRes.ok) {
@@ -116,20 +85,29 @@ async function fetchCompanyData() {
             contact = Array.isArray(contactData) ? contactData[0] : contactData;
         }
 
+        // Handle team members
+        if (teamMembersRes && teamMembersRes.ok) {
+            const teamMembersData = await teamMembersRes.json();
+            teamMembers = Array.isArray(teamMembersData) ? teamMembersData : [];
+            console.log('Successfully fetched team members from API:', teamMembers.length);
+        } else {
+            console.log('Team members API failed or not ok:', teamMembersRes?.status, teamMembersRes?.statusText);
+        }
+
         console.log('Final companies array:', companies);
         console.log('Companies length:', companies?.length);
 
-        return { solutions, companies, contact };
+        return { solutions, companies, contact, teamMembers };
     } catch (error) {
         console.error('Error fetching data:', error);
-        return { solutions: [], companies: [], contact: null };
+        return { solutions: [], companies: [], contact: null, teamMembers: [] };
     }
 }
 
 function createSystemPrompt(data: any) {
     if (!data) return 'You are a helpful assistant for Zawa Solar Energy.';
 
-    const { solutions, companies, contact } = data;
+    const { solutions, companies, contact, teamMembers } = data;
 
     console.log('Creating system prompt with companies:', companies);
     console.log('Is companies array?', Array.isArray(companies));
@@ -151,14 +129,14 @@ BUSINESS HOURS:
 - Email Response: Available during business hours, but responses may be delayed
 
 OUR TEAM:
-${teamMembers.map((member) => `
+${Array.isArray(teamMembers) && teamMembers.length > 0 ? teamMembers.map((member: TeamMember) => `
 ![${member.name}](${member.img})
 
 **${member.name}** - ${member.role}
-- Education: ${member.education}
-- Experience: ${member.experience}
-- Achievements: ${member.achievements}
-`).join('\n---\n')}
+- Education: ${member.education || 'Not specified'}
+- Experience: ${member.experience || 'Not specified'}
+- Achievements: ${member.achievements || 'Not specified'}
+`).join('\n---\n') : 'Our team information is currently being updated.'}
 
 TEAM EXPERTISE:
 - Combined 20+ years of experience in renewable energy
