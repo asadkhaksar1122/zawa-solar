@@ -56,6 +56,35 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
 
     const members = teamMembers || defaultTeamMembers;
     const [hovered, setHovered] = useState<number | null>(null);
+    const [touched, setTouched] = useState<number | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
+
+    React.useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 1024 || 'ontouchstart' in window);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const handleInteractionStart = (idx: number) => {
+        if (isMobile) {
+            setTouched(touched === idx ? null : idx);
+        } else {
+            setHovered(idx);
+        }
+    };
+
+    const handleInteractionEnd = () => {
+        if (!isMobile) {
+            setHovered(null);
+        }
+    };
+
+    const isActive = (idx: number) => {
+        return isMobile ? touched === idx : hovered === idx;
+    };
 
     const cardVariants = {
         rest: {
@@ -72,16 +101,16 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             }
         },
         hover: {
-            scale: 1.03,
-            y: -8,
-            rotateX: -5,
-            rotateY: 5,
-            boxShadow: "0 30px 60px -15px rgba(0, 0, 0, 0.3)",
+            scale: 1.08,
+            y: -15,
+            rotateX: -8,
+            rotateY: 8,
+            boxShadow: "0 40px 80px -20px rgba(0, 0, 0, 0.4)",
             transition: {
-                duration: 0.4,
+                duration: 0.3,
                 type: "spring",
-                stiffness: 300,
-                damping: 20
+                stiffness: 400,
+                damping: 25
             }
         }
     };
@@ -92,17 +121,21 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             rotate: 0,
         },
         hover: {
-            scale: 1.05,
-            rotate: [0, -2, 2, -1, 1, 0],
+            scale: 1.15,
+            rotate: [0, -3, 3, -2, 2, 0],
+            filter: "brightness(1.1) saturate(1.2)",
             transition: {
                 scale: {
-                    duration: 0.4,
+                    duration: 0.3,
                     ease: "easeOut"
                 },
                 rotate: {
-                    duration: 0.6,
+                    duration: 0.8,
                     ease: "easeInOut",
                     times: [0, 0.2, 0.4, 0.6, 0.8, 1]
+                },
+                filter: {
+                    duration: 0.3
                 }
             }
         }
@@ -114,10 +147,10 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
             opacity: 0,
         },
         hover: {
-            scale: [1, 1.5, 1.8],
-            opacity: [0, 0.4, 0],
+            scale: [1, 1.8, 2.2],
+            opacity: [0, 0.6, 0],
             transition: {
-                duration: 1.5,
+                duration: 1.2,
                 repeat: Infinity,
                 ease: "easeOut"
             }
@@ -185,12 +218,13 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
         },
         hover: {
             textShadow: [
-                "0 0 20px rgba(var(--primary-rgb), 0.5)",
-                "0 0 40px rgba(var(--primary-rgb), 0.3)",
-                "0 0 20px rgba(var(--primary-rgb), 0.5)",
+                "0 0 30px rgba(59, 130, 246, 0.8)",
+                "0 0 60px rgba(147, 51, 234, 0.6)",
+                "0 0 30px rgba(59, 130, 246, 0.8)",
             ],
+            scale: [1, 1.02, 1],
             transition: {
-                duration: 1.5,
+                duration: 1.2,
                 repeat: Infinity,
                 ease: "easeInOut"
             }
@@ -331,18 +365,21 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                 variants={cardVariants}
                                 className="relative will-change-transform"
                                 initial="rest"
-                                animate="rest"
-                                whileHover="hover"
+                                animate={isActive(idx) ? "hover" : "rest"}
+                                whileHover={!isMobile ? "hover" : undefined}
+                                whileTap={isMobile ? { scale: 0.98 } : undefined}
                                 style={{
                                     perspective: 1000,
                                     transformStyle: 'preserve-3d',
                                 }}
-                                onHoverStart={() => setHovered(idx)}
-                                onHoverEnd={() => setHovered(null)}
+                                onHoverStart={() => !isMobile && setHovered(idx)}
+                                onHoverEnd={() => !isMobile && setHovered(null)}
+                                onTouchStart={() => isMobile && handleInteractionStart(idx)}
+                                onClick={() => isMobile && handleInteractionStart(idx)}
                             >
                                 {/* Floating Icons */}
                                 <AnimatePresence>
-                                    {hovered === idx && (
+                                    {isActive(idx) && (
                                         <>
                                             <motion.div
                                                 className="absolute -top-8 left-1/2 -translate-x-1/2 text-yellow-400 z-30"
@@ -351,7 +388,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                                 animate="hover"
                                                 exit="rest"
                                             >
-                                                <Star size={24} fill="currentColor" />
+                                                <Star size={28} fill="currentColor" className="drop-shadow-lg" />
                                             </motion.div>
                                             <motion.div
                                                 className="absolute -top-6 left-1/4 text-primary z-30"
@@ -361,7 +398,7 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                                 exit="rest"
                                                 style={{ animationDelay: "0.3s" }}
                                             >
-                                                <Sparkles size={18} />
+                                                <Sparkles size={22} className="drop-shadow-lg" />
                                             </motion.div>
                                             <motion.div
                                                 className="absolute -top-6 right-1/4 text-purple-500 z-30"
@@ -371,20 +408,43 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                                 exit="rest"
                                                 style={{ animationDelay: "0.6s" }}
                                             >
-                                                <Zap size={18} fill="currentColor" />
+                                                <Zap size={22} fill="currentColor" className="drop-shadow-lg" />
                                             </motion.div>
                                         </>
                                     )}
                                 </AnimatePresence>
 
-                                <Card className="rounded-2xl border border-border/50 overflow-visible h-full cursor-pointer relative bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl shadow-xl">
+                                <Card className="rounded-2xl border border-border/50 overflow-visible h-full cursor-pointer relative bg-gradient-to-br from-background via-background/95 to-background/90 backdrop-blur-xl shadow-xl transition-all duration-300 hover:border-primary/30">
                                     {/* Shimmer Effect */}
                                     <motion.div
-                                        className="absolute inset-0 rounded-2xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20"
+                                        className="absolute inset-0 rounded-2xl pointer-events-none z-20"
                                         variants={shimmerVariants}
+                                        initial="rest"
+                                        animate={isActive(idx) ? "hover" : "rest"}
                                         style={{
-                                            background: "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%)",
+                                            background: "linear-gradient(105deg, transparent 30%, rgba(59, 130, 246, 0.3) 50%, rgba(147, 51, 234, 0.3) 70%, transparent 90%)",
                                             backgroundSize: "200% 100%",
+                                            opacity: isActive(idx) ? 1 : 0,
+                                        }}
+                                    />
+
+                                    {/* Glow Effect */}
+                                    <motion.div
+                                        className="absolute inset-0 rounded-2xl pointer-events-none z-10"
+                                        animate={isActive(idx) ? {
+                                            boxShadow: [
+                                                "0 0 0px rgba(59, 130, 246, 0)",
+                                                "0 0 30px rgba(59, 130, 246, 0.4)",
+                                                "0 0 60px rgba(147, 51, 234, 0.3)",
+                                                "0 0 30px rgba(59, 130, 246, 0.4)",
+                                            ]
+                                        } : {
+                                            boxShadow: "0 0 0px rgba(59, 130, 246, 0)"
+                                        }}
+                                        transition={{
+                                            duration: 2,
+                                            repeat: isActive(idx) ? Infinity : 0,
+                                            ease: "easeInOut"
                                         }}
                                     />
 
@@ -405,9 +465,29 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                             />
 
                                             {/* Gradient Border */}
-                                            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-primary p-[2px] animate-spin-slow">
+                                            <motion.div
+                                                className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-primary p-[2px]"
+                                                animate={isActive(idx) ? {
+                                                    rotate: 360,
+                                                    scale: [1, 1.05, 1]
+                                                } : {
+                                                    rotate: 0
+                                                }}
+                                                transition={{
+                                                    rotate: {
+                                                        duration: 3,
+                                                        repeat: isActive(idx) ? Infinity : 0,
+                                                        ease: "linear"
+                                                    },
+                                                    scale: {
+                                                        duration: 1.5,
+                                                        repeat: isActive(idx) ? Infinity : 0,
+                                                        ease: "easeInOut"
+                                                    }
+                                                }}
+                                            >
                                                 <div className="h-full w-full rounded-full bg-background" />
-                                            </div>
+                                            </motion.div>
 
                                             <Image
                                                 src={member.img}
@@ -426,24 +506,27 @@ const TeamSection: React.FC<TeamSectionProps> = ({ teamMembers }) => {
                                         </motion.h3>
                                         <motion.p
                                             className="text-primary font-medium text-sm mb-4"
-                                            animate={hovered === idx ? {
-                                                scale: [1, 1.05, 1],
+                                            animate={isActive(idx) ? {
+                                                scale: [1, 1.08, 1],
+                                                color: ["rgb(59, 130, 246)", "rgb(147, 51, 234)", "rgb(59, 130, 246)"]
                                             } : {}}
                                             transition={{
-                                                duration: 0.3,
+                                                duration: 1.5,
+                                                repeat: isActive(idx) ? Infinity : 0,
+                                                ease: "easeInOut"
                                             }}
                                         >
                                             {member.role}
                                         </motion.p>
 
                                         <AnimatePresence>
-                                            {hovered === idx && (
+                                            {isActive(idx) && (
                                                 <motion.div
                                                     className="space-y-3 text-left text-sm"
-                                                    initial={{ opacity: 0, height: 0 }}
-                                                    animate={{ opacity: 1, height: "auto" }}
-                                                    exit={{ opacity: 0, height: 0 }}
-                                                    transition={{ duration: 0.3 }}
+                                                    initial={{ opacity: 0, height: 0, y: 20 }}
+                                                    animate={{ opacity: 1, height: "auto", y: 0 }}
+                                                    exit={{ opacity: 0, height: 0, y: 20 }}
+                                                    transition={{ duration: 0.4, ease: "easeOut" }}
                                                 >
                                                     <motion.div
                                                         className="flex items-start gap-2 group"

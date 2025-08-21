@@ -51,7 +51,7 @@ export function AdminHeader() {
               <DialogTitle>Navigation Menu</DialogTitle>
             </VisuallyHidden>
             <div className="p-4 border-b">
-              <Logo href="/admin" />
+              <Logo href="/admin" iconSize={40} textSize="text-xl" />
             </div>
             <AdminSidebarNav className="p-4" onLinkClick={closeSidebar} />
           </SheetContent>

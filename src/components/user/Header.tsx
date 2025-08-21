@@ -1,10 +1,9 @@
-
 'use client';
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/Logo';
-import { Menu, UserCircle, LogOut, Edit, Pen, Eye, EyeOff } from 'lucide-react';
+import { Menu, UserCircle, LogOut, Pen, Eye, EyeOff, KeyRound, LayoutGrid, Users, Mail } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -48,8 +47,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChangePasswordDialog } from './changepassword';
 
-// Form schema for changing name
+
+// ---------------- CHANGE NAME SCHEMA ----------------
 const changeNameSchema = z.object({
   newName: z.string().min(1, 'Name is required').min(2, 'Name must be at least 2 characters'),
   password: z.string().min(1, 'Password is required'),
@@ -57,14 +58,20 @@ const changeNameSchema = z.object({
 
 type ChangeNameFormValues = z.infer<typeof changeNameSchema>;
 
+
+
+
+
+// ---------------- MAIN HEADER ----------------
 export function UserHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status, update } = useSession();
   const isLoadingSession = status === 'loading';
 
-  // State for change name dialog
+  // State for dialogs
   const [isChangeNameDialogOpen, setIsChangeNameDialogOpen] = useState(false);
+  const [isChangePasswordDialogOpen, setIsChangePasswordDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -79,110 +86,70 @@ export function UserHeader() {
     },
   });
 
-  // Update form when session changes
   React.useEffect(() => {
-    if (session?.user?.name) {
-      form.setValue('newName', session.user.name);
-    }
+    if (session?.user?.name) form.setValue('newName', session.user.name);
   }, [session?.user?.name, form]);
 
-  // Handle form submission
   const onSubmitChangeName = async (data: ChangeNameFormValues) => {
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-
+    setIsSubmitting(true); setError(null); setSuccess(null);
     try {
       const response = await fetch('/api/user/change-name', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          newName: data.newName,
-          password: data.password,
-        }),
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
       });
-
       const result = await response.json();
+      if (!response.ok) throw new Error(result.message || 'Failed to update name');
 
-      if (!response.ok) {
-        throw new Error(result.message || 'Failed to update name');
-      }
-
-      // Update the session with the new name
-      console.log('Updating session with new name:', data.newName);
-
-      // Use the update function to trigger a session refresh
       await update({ name: data.newName });
-
-      // Refresh the router to ensure all components get the updated session
       router.refresh();
 
       setSuccess('Name updated successfully!');
       form.reset({ newName: data.newName, password: '' });
-
-      // Close dialog after a short delay
-      setTimeout(() => {
-        setIsChangeNameDialogOpen(false);
-        setSuccess(null);
-      }, 1500);
+      setTimeout(() => { setIsChangeNameDialogOpen(false); setSuccess(null); }, 1500);
 
     } catch (error: any) {
-      setError(error.message || 'An error occurred while updating your name');
+      setError(error.message || 'Error updating your name');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const navLinks = [
-    { href: '/', label: 'Solutions', activeCondition: () => pathname === '/' || pathname.startsWith('/solutions') },
-    { href: '/about', label: 'About Us', activeCondition: () => pathname === '/about' },
-    { href: '/contact', label: 'Contact', activeCondition: () => pathname === '/contact' },
+    { href: '/', label: 'Solutions', icon: LayoutGrid, activeCondition: () => pathname === '/' || pathname.startsWith('/solutions') },
+    { href: '/about', label: 'About Us', icon: Users, activeCondition: () => pathname === '/about' },
+    { href: '/contact', label: 'Contact', icon: Mail, activeCondition: () => pathname === '/contact' },
   ];
 
   const handleSignOut = async () => {
     await signOut({ redirect: false, callbackUrl: '/' });
-    router.push('/'); // Or any other page you want to redirect to after logout
+    router.push('/');
     router.refresh();
   };
 
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4">
-        <Logo iconSize={40} textSize="text-lg sm:text-xl md:text-2xl" className="min-w-0 flex-shrink" />
+        <Logo iconSize={40} textSize="text-lg sm:text-xl md:text-2xl" />
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2 flex-shrink-0">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center gap-2">
           {navLinks.map((link) => (
-            <Button
-              key={link.href}
-              variant="ghost"
-              asChild
-              className={cn(
-                'hover:bg-primary/10',
-                link.activeCondition() && 'text-primary font-semibold bg-primary/5'
-              )}
-            >
+            <Button key={link.href} variant="ghost" asChild
+              className={cn('hover:bg-primary/10', link.activeCondition() && 'text-primary font-semibold bg-primary/5')}>
               <Link href={link.href}>{link.label}</Link>
             </Button>
           ))}
-          <div className="mx-2 h-6 border-l border-border/70"></div>
+          <div className="mx-2 h-6 border-l" />
           {isLoadingSession ? (
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
-              <div className="h-8 w-20 animate-pulse rounded-md bg-muted"></div>
-            </div>
+            <div className="flex gap-2"><div className="h-8 w-20 animate-pulse bg-muted rounded-md"></div><div className="h-8 w-20 animate-pulse bg-muted rounded-md"></div></div>
           ) : session?.user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0">
+                <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={session.user.image || undefined} alt={session.user.name || session.user.email || 'User'} />
-                    <AvatarFallback>
-                      {session.user.name ? session.user.name.charAt(0).toUpperCase() : session.user.email ? session.user.email.charAt(0).toUpperCase() : <UserCircle className="h-5 w-5" />}
-                    </AvatarFallback>
+                    <AvatarImage src={session.user.image || undefined} alt={session.user.name || ''} />
+                    <AvatarFallback>{session.user.name?.charAt(0).toUpperCase() || <UserCircle />}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -190,79 +157,58 @@ export function UserHeader() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium leading-none">{session.user.name || 'User'}</p>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 p-0"
-                        onClick={() => setIsChangeNameDialogOpen(true)}
-                      >
+                      <p className="text-sm font-medium">{session.user.name}</p>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 p-0"
+                        onClick={() => setIsChangeNameDialogOpen(true)}>
                         <Pen className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {session.user.email}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{session.user.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {(session?.user as any)?.role === "admin" && <DropdownMenuItem onClick={() => router.push('/admin')}> {/* Or profile page */}
-                  <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Admin Page</span> {/* Or Dashboard */}
-                </DropdownMenuItem>}
+                <DropdownMenuItem onClick={() => setIsChangePasswordDialogOpen(true)}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  <span>Change Password</span>
+                </DropdownMenuItem>
+                {(session?.user as any)?.role === "admin" && (
+                  <DropdownMenuItem onClick={() => router.push('/admin')}>
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    <span>Admin Page</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Log out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <>
-              <Button
-                variant="ghost"
-                asChild
-                className={cn(pathname === '/auth/login' && 'text-primary font-semibold bg-primary/5', 'hover:bg-primary/10')}
-              >
+              <Button variant="ghost" asChild>
                 <Link href="/auth/login">Login</Link>
               </Button>
-              <Button
-                variant="default"
-                asChild
-                className={cn(pathname === '/auth/signup' && 'ring-2 ring-primary-foreground ring-offset-2 ring-offset-primary')}
-              >
+              <Button variant="default" asChild>
                 <Link href="/auth/signup">Sign Up</Link>
               </Button>
             </>
           )}
         </nav>
 
-        {/* Mobile Navigation Trigger */}
+        {/* Mobile Nav */}
         <div className="md:hidden">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" size="icon">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Open navigation menu</span>
-              </Button>
+              <Button variant="outline" size="icon"><Menu className="h-6 w-6" /><span className="sr-only">Menu</span></Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-[280px] p-0 flex flex-col">
-              <SheetHeader className="p-4 border-b">
-                <SheetTitle>
-                  <Logo />
-                </SheetTitle>
-              </SheetHeader>
+              <SheetHeader className="p-4 border-b"><SheetTitle><Logo iconSize={40} textSize="text-xl" /></SheetTitle></SheetHeader>
               <div className="flex-grow overflow-y-auto">
                 <nav className="flex flex-col gap-1 p-4">
                   {navLinks.map((link) => (
                     <SheetClose key={link.href} asChild>
-                      <Link
-                        href={link.href}
-                        className={cn(
-                          'block px-3 py-2 text-base rounded-md hover:bg-muted',
-                          link.activeCondition() && 'bg-muted text-primary font-semibold'
-                        )}
-                      >
+                      <Link href={link.href} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium', link.activeCondition() && 'bg-muted text-primary')}>
+                        <link.icon className="h-5 w-5" />
                         {link.label}
                       </Link>
                     </SheetClose>
@@ -270,53 +216,35 @@ export function UserHeader() {
                 </nav>
               </div>
               <Separator />
-              <div className="p-4 border-t space-y-2">
+              <div className="p-4 space-y-2">
                 {isLoadingSession ? (
-                  <div className="space-y-2">
-                    <div className="h-10 w-full animate-pulse rounded-md bg-muted"></div>
-                    <div className="h-10 w-full animate-pulse rounded-md bg-muted"></div>
-                  </div>
+                  <div className="space-y-2"><div className="h-10 w-full animate-pulse bg-muted rounded-md"></div><div className="h-10 w-full animate-pulse bg-muted rounded-md"></div></div>
                 ) : session?.user ? (
                   <>
                     <div className="px-3 py-2">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-medium">{session.user.name || 'User'}</p>
+                          <p className="font-medium">{session.user.name}</p>
                           <p className="text-xs text-muted-foreground">{session.user.email}</p>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 p-0 my-auto"
-                          onClick={() => setIsChangeNameDialogOpen(true)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"
+                          onClick={() => setIsChangeNameDialogOpen(true)}>
                           <Pen className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>
-                    {(session?.user as any)?.role === "admin" && <SheetClose asChild>
-                      <Button variant="outline" className="w-full" onClick={() => router.push('/admin')}>
-                        Admin Page
-                      </Button>
-                    </SheetClose>}
+                    <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setIsChangePasswordDialogOpen(true)}><KeyRound className="h-4 w-4" /><span>Change Password</span></Button>
+                    {(session?.user as any)?.role === "admin" && (
+                      <SheetClose asChild><Button variant="outline" className="w-full justify-start gap-2" onClick={() => router.push('/admin')}><UserCircle className="h-4 w-4" /><span>Admin Page</span></Button></SheetClose>
+                    )}
                     <SheetClose asChild>
-                      <Button variant="destructive" className="w-full" onClick={handleSignOut}>
-                        Log Out
-                      </Button>
+                      <Button variant="destructive" className="w-full justify-start gap-2" onClick={handleSignOut}><LogOut className="h-4 w-4" /><span>Log Out</span></Button>
                     </SheetClose>
                   </>
                 ) : (
                   <>
-                    <SheetClose asChild>
-                      <Button variant="outline" className={cn("w-full", pathname === '/auth/login' && 'border-primary text-primary')} asChild>
-                        <Link href="/auth/login">Login</Link>
-                      </Button>
-                    </SheetClose>
-                    <SheetClose asChild>
-                      <Button className={cn("w-full", pathname === '/auth/signup' && 'ring-2 ring-primary ring-offset-2 ring-offset-background')} asChild>
-                        <Link href="/auth/signup">Sign Up</Link>
-                      </Button>
-                    </SheetClose>
+                    <SheetClose asChild><Button variant="outline" className="w-full" asChild><Link href="/auth/login">Login</Link></Button></SheetClose>
+                    <SheetClose asChild><Button className="w-full" asChild><Link href="/auth/signup">Sign Up</Link></Button></SheetClose>
                   </>
                 )}
               </div>
@@ -330,93 +258,42 @@ export function UserHeader() {
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Change Your Name</DialogTitle>
-            <DialogDescription>
-              Enter your new name and current password to update your profile.
-            </DialogDescription>
+            <DialogDescription>Enter your new name and password to update profile.</DialogDescription>
           </DialogHeader>
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmitChangeName)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="newName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter your new name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Current Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Enter your current password"
-                          {...field}
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? (
-                            <EyeOff className="h-4 w-4" />
-                          ) : (
-                            <Eye className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-
-              {success && (
-                <Alert>
-                  <AlertDescription>{success}</AlertDescription>
-                </Alert>
-              )}
-
+              <FormField control={form.control} name="newName" render={({ field }) => (
+                <FormItem><FormLabel>New Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="password" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input type={showPassword ? "text" : "password"} {...field} />
+                      <Button type="button" variant="ghost" size="icon"
+                        className="absolute right-0 top-0 h-full px-3"
+                        onClick={() => setShowPassword(!showPassword)}>
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
+              {success && <Alert><AlertDescription>{success}</AlertDescription></Alert>}
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsChangeNameDialogOpen(false);
-                    form.reset();
-                    setError(null);
-                    setSuccess(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? 'Updating...' : 'Update Name'}
-                </Button>
+                <Button type="button" variant="outline" onClick={() => { setIsChangeNameDialogOpen(false); form.reset(); }}>Cancel</Button>
+                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? "Updating..." : "Update Name"}</Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Change Password Dialog */}
+      <ChangePasswordDialog open={isChangePasswordDialogOpen} onOpenChange={setIsChangePasswordDialogOpen} />
     </header>
   );
 }
