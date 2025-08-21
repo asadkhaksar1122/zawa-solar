@@ -56,3 +56,15 @@ export interface ContactSettings {
   facebookUrl: string;
   officeAddress: string;
 }
+
+export interface TeamMember {
+  _id: string;
+  name: string;
+  role: string;
+  img: string;
+  education: string;
+  experience: string;
+  achievements: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
