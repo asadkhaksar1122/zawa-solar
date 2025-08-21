@@ -24,7 +24,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { makeadmin, makeUserAdminAction } from './actions';
+import { makeUserAdminAction } from './actions';
 import Swal from 'sweetalert2';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AdminTable from '@/components/AdminTable';
@@ -86,16 +86,8 @@ export default function ManageUsersPage() {
     setShowErrorAlert(false);
     const formData = new FormData();
     formData.append('email', data.email);
-    let result = await makeadmin(data.email)
-    if (result.success) {
-      formState.message = result.message;
-      formState.success = true;
-    } else {
-      formState.message = result.message;
-      formState.success = false;
-    }
     console.log('Form data:', data);
-    // Wrap the action dispatch in startTransition
+    // Dispatch the server action inside a transition so isPending updates correctly
     startTransition(() => {
       dispatchMakeUserAdminAction(formData);
     });

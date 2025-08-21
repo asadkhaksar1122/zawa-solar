@@ -22,31 +22,40 @@ export async function makeUserAdminAction(
     if (!validatedFields.success) {
       return { success: false, message: 'Invalid email format. Please enter a valid email.' };
     }
-    await dbConnect()
+    await dbConnect();
 
-    const updateduser = await UserModel.findOneAndUpdate({ email: validatedFields.data.email }, { $set: { role: 'admin' } }, { new: true });
-    if (!updateduser) {
+    const normalized = validatedFields.data.email.trim().toLowerCase();
+
+    // Find the user to check role and verification status
+    const user = await UserModel.findOne({ email: normalized });
+    if (!user) {
       return { success: false, message: `User with email ${validatedFields.data.email} not found.` };
-    } else {
-      console.log(updateduser)
     }
-    // --- Placeholder for actual admin granting logic ---
-    // In a real application, you would:
-    // 1. Find the user by email in your database.
-    // 2. If found, update their role/permissions to 'admin'.
-    //    - This might involve checking if they are already an admin.
-    // 3. If not found, you might:
-    //    a. Return an error "User not found."
-    //    b. Or, if the intent is to invite, handle that flow.
-    //
-    // For this prototype, we'll just log the action and simulate success.
-    // This does NOT actually modify user roles in the current NextAuth setup.
-    console.log(`Simulating: Granting admin privileges to user with email: ${validatedFields.data.email}`);
-    // --- End of Placeholder ---
 
-    revalidatePath('/admin/users'); // In case we list admins on this page later
+    // If already admin, do not proceed
+    if (user.role === 'admin') {
+      return { success: false, message: `User with email ${validatedFields.data.email} is already an admin.` };
+    }
 
-    return { success: true, message: `Admin privileges request for ${validatedFields.data.email} processed (simulated).` };
+    // If email not verified, do not promote
+    if (!user.isEmailVerified) {
+      return { success: false, message: `Email for ${validatedFields.data.email} is not verified. Please verify the email before granting admin privileges.` };
+    }
+
+    // Promote to admin
+    const updateduser = await UserModel.findOneAndUpdate(
+      { email: normalized },
+      { $set: { role: 'admin' } },
+      { new: true }
+    );
+
+    if (!updateduser) {
+      return { success: false, message: `Failed to grant admin privileges to ${validatedFields.data.email}.` };
+    }
+
+    revalidatePath('/admin/users'); // update any cached admin listings
+
+    return { success: true, message: `Admin privileges granted to ${validatedFields.data.email}.` };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, message: error.issues[0].message };
@@ -65,19 +74,32 @@ export async function makeadmin(email: string) {
     console.log("making admin");
     await dbConnect();
 
-    const normalized = email?.trim();
+    const normalized = email?.trim().toLowerCase();
     if (!normalized) {
       return { success: false, message: "Email is required." };
     }
+    // Find the user first so we can check role and verification status
+    const user = await UserModel.findOne({ email: normalized });
 
+    if (!user) {
+      return { success: false, message: `User with email ${email} not found.` };
+    }
+
+    // If user is already an admin, inform the caller
+    if (user.role === 'admin') {
+      return { success: false, message: `User with email ${email} is already an admin.` };
+    }
+
+    // If user's email is not verified, do not promote
+    if (!user.isEmailVerified) {
+      return { success: false, message: `Email for ${email} is not verified. Please verify the email before granting admin privileges.` };
+    }
+
+    // Passed checks — promote to admin
     const result = await UserModel.updateOne(
       { email: normalized },
       { $set: { role: "admin" } },
-      {
-        upsert: false,
-        // Optional: make email match case-insensitive (if you store mixed-case emails)
-        // collation: { locale: "en", strength: 2 },
-      }
+      { upsert: false }
     );
 
     console.log("update result:", result);
