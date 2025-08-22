@@ -20,8 +20,8 @@ export function UserFooter() {
 
         {/* Links Section: Privacy & Terms */}
         <div className="flex flex-col items-center sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-muted-foreground">
-          <a href="/privacy" className="hover:text-foreground">Privacy Policy</a>
-          <a href="/terms" className="hover:text-foreground">Terms of Service</a>
+          <Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-foreground">Terms of Service</Link>
         </div>
       </div>
     </footer>
