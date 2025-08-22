@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Logo } from '@/components/shared/Logo';
-import { Menu, UserCircle, LogOut, Pen, Eye, EyeOff, KeyRound, LayoutGrid, Users, Mail } from 'lucide-react';
+import { Menu, UserCircle, LogOut, Pen, Eye, EyeOff, KeyRound, LayoutGrid, Users, Mail, FileText } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -118,6 +118,8 @@ export function UserHeader() {
     { href: '/', label: 'Solutions', icon: LayoutGrid, activeCondition: () => pathname === '/' || pathname.startsWith('/solutions') },
     { href: '/about', label: 'About Us', icon: Users, activeCondition: () => pathname === '/about' },
     { href: '/contact', label: 'Contact', icon: Mail, activeCondition: () => pathname === '/contact' },
+    { href: '/privacy', label: 'Privacy Policy', icon: Eye, activeCondition: () => pathname === '/privacy' },
+    { href: '/term', label: 'Term', icon: FileText, activeCondition: () => pathname === '/term' },
   ];
 
   const handleSignOut = async () => {
@@ -133,11 +135,11 @@ export function UserHeader() {
         <Logo iconSize={40} textSize="text-lg sm:text-xl md:text-2xl" />
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-2">
+        <nav className="hidden md:flex items-center gap-2 overflow-x-auto">
           {navLinks.map((link) => (
             <Button key={link.href} variant="ghost" asChild
-              className={cn('hover:bg-primary/10', link.activeCondition() && 'text-primary font-semibold bg-primary/5')}>
-              <Link href={link.href}>{link.label}</Link>
+              className={cn('hover:bg-primary/10 flex-shrink-0', link.activeCondition() && 'text-primary font-semibold bg-primary/5')}>
+              <Link href={link.href} aria-current={link.activeCondition() ? 'page' : undefined}>{link.label}</Link>
             </Button>
           ))}
           <div className="mx-2 h-6 border-l" />
@@ -207,7 +209,7 @@ export function UserHeader() {
                 <nav className="flex flex-col gap-1 p-4">
                   {navLinks.map((link) => (
                     <SheetClose key={link.href} asChild>
-                      <Link href={link.href} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium', link.activeCondition() && 'bg-muted text-primary')}>
+                      <Link href={link.href} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium whitespace-nowrap', link.activeCondition() && 'bg-muted text-primary')}>
                         <link.icon className="h-5 w-5" />
                         {link.label}
                       </Link>
