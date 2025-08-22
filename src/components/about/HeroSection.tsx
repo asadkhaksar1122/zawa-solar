@@ -1,9 +1,68 @@
 "use client"
-import React from "react";
-import { motion } from 'framer-motion';
+import React, { useEffect, useRef, useState } from "react";
+import { motion, useInView, useMotionValue, useTransform, animate } from 'framer-motion';
 import { Sun, Sparkles, Zap } from "lucide-react";
 
+// Animated Counter Component
+type AnimatedCounterProps = {
+    from: number;
+    to: number;
+    duration?: number;
+    suffix?: string;
+    inView: boolean;
+    delay?: number;
+};
+
+const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ from, to, duration = 2, suffix = "", inView, delay = 0 }) => {
+    const count = useMotionValue<number>(from);
+    const rounded = useTransform<number, string>(count, (latest) => {
+        // Handle percentage or regular numbers
+        if (suffix === "%") {
+            return `${Math.round(latest)}${suffix}`;
+        }
+        return `${Math.round(latest)}${suffix}`;
+    });
+
+    useEffect(() => {
+        if (inView) {
+            const timer = setTimeout(() => {
+                const controls = animate(count, to, {
+                    duration: duration,
+                    ease: "easeOut",
+                });
+                return () => controls.stop();
+            }, delay * 1000);
+
+            return () => clearTimeout(timer);
+        } else {
+            // Reset to initial value when out of view
+            count.set(from);
+        }
+    }, [inView, from, to, duration, count, delay]);
+
+    return <motion.span>{rounded}</motion.span>;
+};
+
 const HeroSection = () => {
+    const statsRef = useRef(null);
+    const isFirstLoad = useRef(true);
+    const [animationDelay, setAnimationDelay] = useState(2); // Initial delay for first load
+
+    const isInView = useInView(statsRef, {
+        once: false, // Allow re-triggering
+        amount: 0.5 // Trigger when 50% of the element is in view
+    });
+
+    useEffect(() => {
+        if (isInView && isFirstLoad.current) {
+            // After first view, remove the delay for subsequent animations
+            setTimeout(() => {
+                isFirstLoad.current = false;
+                setAnimationDelay(0);
+            }, 3000); // Wait for initial animation to complete
+        }
+    }, [isInView]);
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -80,6 +139,12 @@ const HeroSection = () => {
             }
         }
     };
+
+    const stats = [
+        { number: 500, suffix: "+", label: "Projects", duration: 2.5 },
+        { number: 10, suffix: "+", label: "Years", duration: 2 },
+        { number: 99, suffix: "%", label: "Satisfaction", duration: 3 }
+    ];
 
     return (
         <motion.div
@@ -265,19 +330,24 @@ const HeroSection = () => {
 
                     {/* Animated Stats Bar */}
                     <motion.div
+                        ref={statsRef}
                         className="flex justify-center gap-8 mt-8"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8, duration: 0.6 }}
                     >
-                        {[
-                            { number: "500+", label: "Projects" },
-                            { number: "10+", label: "Years" },
-                            { number: "99%", label: "Satisfaction" }
-                        ].map((stat, index) => (
+                        {stats.map((stat, index) => (
                             <motion.div
                                 key={index}
                                 className="text-center"
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={isInView ? { scale: 1, opacity: 1 } : { scale: 0, opacity: 0 }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 100,
+                                    delay: isInView ? (isFirstLoad.current ? 1.5 : 0) + index * 0.1 : 0,
+                                    duration: 0.5
+                                }}
                                 whileHover={{
                                     scale: 1.1,
                                     transition: { type: "spring", stiffness: 300 }
@@ -285,22 +355,40 @@ const HeroSection = () => {
                             >
                                 <motion.div
                                     className="text-2xl md:text-3xl font-bold text-yellow-300"
-                                    animate={{
+                                    animate={isInView ? {
                                         textShadow: [
                                             "0 0 10px rgba(251, 191, 36, 0.5)",
                                             "0 0 20px rgba(251, 191, 36, 0.8)",
                                             "0 0 10px rgba(251, 191, 36, 0.5)"
                                         ]
-                                    }}
+                                    } : {}}
                                     transition={{
                                         duration: 2,
                                         repeat: Infinity,
                                         delay: index * 0.2
                                     }}
                                 >
-                                    {stat.number}
+                                    <AnimatedCounter
+                                        from={0}
+                                        to={stat.number}
+                                        duration={stat.duration}
+                                        suffix={stat.suffix}
+                                        inView={isInView}
+                                        delay={isFirstLoad.current ? animationDelay + index * 0.3 : 0}
+                                    />
                                 </motion.div>
-                                <div className="text-sm opacity-80">{stat.label}</div>
+                                <motion.div
+                                    className="text-sm opacity-80"
+                                    initial={{ opacity: 0 }}
+                                    animate={isInView ? { opacity: 0.8 } : { opacity: 0 }}
+                                    transition={{
+                                        delay: isInView ?
+                                            (isFirstLoad.current ? animationDelay + stat.duration : stat.duration)
+                                            : 0
+                                    }}
+                                >
+                                    {stat.label}
+                                </motion.div>
                             </motion.div>
                         ))}
                     </motion.div>

@@ -18,7 +18,7 @@ export async function GET() {
             });
         }
 
-        const allTeamMembers = await TeamMember.find({}).sort({ createdAt: -1 });
+        const allTeamMembers = await TeamMember.find({}).sort({ createdAt: 1 });
         return NextResponse.json(allTeamMembers);
 
     } catch (error: unknown) {
