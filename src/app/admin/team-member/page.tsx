@@ -84,27 +84,26 @@ export default function AdminTeamMemberPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Team Members</h1>
-          <p className="text-muted-foreground text-sm md:text-base">
+    <div className="w-full min-w-0 space-y-4 md:space-y-6 px-2 sm:px-4 md:px-6">
+      <div className="flex flex-col gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight break-words">Team Members</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm md:text-base break-words">
             Manage your team members and their information.
           </p>
         </div>
 
         <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
           <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <PlusCircle className="mr-2 h-4 w-4" />
-              <span className="hidden xs:inline">Add Team Member</span>
-              <span className="xs:hidden">Add Member</span>
+            <Button className="w-full sm:w-auto text-sm">
+              <PlusCircle className="mr-2 h-4 w-4 flex-shrink-0" />
+              <span className="truncate">Add Team Member</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
+          <DialogContent className="w-[calc(100vw-16px)] max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
             <DialogHeader>
-              <DialogTitle className="text-lg md:text-xl">Add New Team Member</DialogTitle>
-              <DialogDescription className="text-sm">
+              <DialogTitle className="text-base sm:text-lg md:text-xl">Add New Team Member</DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm">
                 Fill in the details to add a new team member.
               </DialogDescription>
             </DialogHeader>
@@ -114,28 +113,30 @@ export default function AdminTeamMemberPage() {
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg md:text-xl">Team Members ({teamMembers.length})</CardTitle>
-          <CardDescription className="text-sm">
+      <Card className="w-full min-w-0">
+        <CardHeader className="pb-4 px-3 sm:px-6">
+          <CardTitle className="text-base sm:text-lg md:text-xl break-words">Team Members ({teamMembers.length})</CardTitle>
+          <CardDescription className="text-xs sm:text-sm break-words">
             A list of all team members in your organization.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-4 md:p-6">
-          <TeamMemberTable
-            teamMembers={teamMembers}
-            onEdit={handleEdit}
-            onRefetch={refetch}
-          />
+        <CardContent className="p-2 sm:p-4 md:p-6 overflow-x-auto">
+          <div className="min-w-0">
+            <TeamMemberTable
+              teamMembers={teamMembers}
+              onEdit={handleEdit}
+              onRefetch={refetch}
+            />
+          </div>
         </CardContent>
       </Card>
 
       {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={handleCloseEditModal}>
-        <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto mx-auto">
+        <DialogContent className="w-[calc(100vw-16px)] max-w-2xl max-h-[90vh] overflow-y-auto mx-2">
           <DialogHeader>
-            <DialogTitle className="text-lg md:text-xl">Edit Team Member</DialogTitle>
-            <DialogDescription className="text-sm">
+            <DialogTitle className="text-base sm:text-lg md:text-xl">Edit Team Member</DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
               Update the team member information.
             </DialogDescription>
           </DialogHeader>

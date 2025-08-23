@@ -6,7 +6,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 export const baseApi = createApi({
   reducerPath: 'api', // Specifies where this API slice's reducer will be mounted in the Redux state
   baseQuery: fetchBaseQuery({ baseUrl: '/api' }), // Configures the base URL for all API requests
-  tagTypes: ['Solutions', 'Solution', 'Companies', 'ContactSettings', 'User', "Dashboard", 'TeamMembers', 'TeamMember'], // Declare tag types used by endpoints
+  tagTypes: ['Solutions', 'Solution', 'Companies', 'ContactSettings', 'User', "Dashboard", 'TeamMembers', 'TeamMember', 'Subscription'], // Declare tag types used by endpoints
   endpoints: () => ({}), // Endpoints will be injected using injectEndp,oints
 });
 

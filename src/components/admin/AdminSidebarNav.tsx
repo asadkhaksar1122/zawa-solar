@@ -3,13 +3,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Box, Building, Settings, Phone, Users, UserCheck } from 'lucide-react'; // Added UserCheck icon
+import { LayoutDashboard, Box, Building, Settings, Phone, Users, UserCheck, Mail } from 'lucide-react'; // Added Mail icon
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/solutions', label: 'Solar Solutions', icon: Box },
   { href: '/admin/companies', label: 'Companies', icon: Building },
-  { href: '/admin/team-member', label: 'Team Members', icon: UserCheck }, // New team member item
+  { href: '/admin/team-member', label: 'Team Members', icon: UserCheck },
+  { href: '/admin/subscriptions', label: 'Subscriptions', icon: Mail }, // New subscription item
   { href: '/admin/contact-settings', label: 'Contact Settings', icon: Phone },
   { href: '/admin/users', label: 'Manage Users', icon: Users },
   // { href: '/admin/settings', label: 'Settings', icon: Settings },
