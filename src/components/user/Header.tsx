@@ -119,7 +119,7 @@ export function UserHeader() {
     { href: '/about', label: 'About Us', icon: Users, activeCondition: () => pathname === '/about' },
     { href: '/contact', label: 'Contact', icon: Mail, activeCondition: () => pathname === '/contact' },
     { href: '/privacy', label: 'Privacy Policy', icon: Eye, activeCondition: () => pathname === '/privacy' },
-    { href: '/term', label: 'Term', icon: FileText, activeCondition: () => pathname === '/term' },
+    { href: '/terms', label: 'Term', icon: FileText, activeCondition: () => pathname === '/terms' },
   ];
 
   const handleSignOut = async () => {

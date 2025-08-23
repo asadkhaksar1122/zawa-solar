@@ -243,7 +243,7 @@ const TermsOfService = () => {
 
                             {/* Subtitle */}
                             <p className="font-body text-xl text-center text-muted-foreground mb-12 max-w-3xl mx-auto animate-fade-in-up">
-                                Welcome to Zawa Solar Solution. These terms govern your use of our solar energy services
+                                Welcome to Zawa Solar Energy. These terms govern your use of our solar energy services
                                 and products. By using our services, you agree to these terms.
                             </p>
 
@@ -306,7 +306,7 @@ const TermsOfService = () => {
                                 className={`lg:sticky lg:top-24 static`}
                                 style={sidebarFixed && window.innerWidth >= 1024 ? {
                                     position: 'fixed',
-                                    top: '96px',
+                                    top: '5px',
                                     left: `${sidebarLeft}px`,
                                     width: `${sidebarWidth}px`,
                                     zIndex: 40
@@ -419,7 +419,7 @@ const TermsOfService = () => {
 
                                         <div className="font-body space-y-4 text-muted-foreground">
                                             <div className="bg-gradient-to-r from-primary/5 to-transparent border-l-4 border-primary p-4 rounded-lg">
-                                                <p className="font-semibold text-foreground mb-2">By accessing or using Zawa Solar Solution services, you agree to:</p>
+                                                <p className="font-semibold text-foreground mb-2">By accessing or using Zawa Solar Energy services, you agree to:</p>
                                                 <ul className="space-y-2 ml-4">
                                                     {[
                                                         'Be bound by these Terms of Service',
@@ -665,8 +665,8 @@ const TermsOfService = () => {
 
                                     <div className="font-body space-y-4 text-muted-foreground">
                                         <p>
-                                            All content, features, and functionality of Zawa Solar Solution services, including but not limited to text,
-                                            graphics, logos, and software, are the exclusive property of Zawa Solar Solution and are protected by
+                                            All content, features, and functionality of Zawa Solar Energy services, including but not limited to text,
+                                            graphics, logos, and software, are the exclusive property of Zawa Solar Energy and are protected by
                                             international copyright, trademark, and other intellectual property laws.
                                         </p>
                                         <div className="bg-chart-4/5 border border-chart-4/20 rounded-xl p-5">
@@ -744,7 +744,7 @@ const TermsOfService = () => {
                                         <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-6">
                                             <p className="font-semibold text-foreground mb-3">Important Legal Notice</p>
                                             <p className="text-sm">
-                                                To the maximum extent permitted by law, Zawa Solar Solution shall not be liable for any indirect,
+                                                To the maximum extent permitted by law, Zawa Solar Energy shall not be liable for any indirect,
                                                 incidental, special, consequential, or punitive damages, or any loss of profits or revenues,
                                                 whether incurred directly or indirectly.
                                             </p>
@@ -801,7 +801,7 @@ const TermsOfService = () => {
                                     <div className="font-body space-y-4 text-muted-foreground">
                                         <p>
                                             These Terms shall be governed by and construed in accordance with the laws of the jurisdiction
-                                            in which Zawa Solar Solution operates, without regard to its conflict of law provisions.
+                                            in which Zawa Solar Energy operates, without regard to its conflict of law provisions.
                                         </p>
                                     </div>
                                 </div>
