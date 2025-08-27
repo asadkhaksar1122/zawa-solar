@@ -38,6 +38,8 @@ export async function GET() {
                 },
                 security: {
                     enableTwoFactor: false,
+                    // default for VPN protection
+                    isVpnProtected: false,
                     sessionTimeout: 60,
                     maxLoginAttempts: 5,
                     lockoutDuration: 15,

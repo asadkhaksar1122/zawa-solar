@@ -29,6 +29,8 @@ interface ISecuritySettings {
     lockoutDuration: number; // in minutes
     enableCaptcha: boolean;
     allowedDomains: string[];
+    // If true, users connecting through VPN will be shown a warning modal and required to disable VPN
+    isVpnProtected?: boolean;
     // CAPTCHA configuration (provider and siteKey stored in DB; secretKey stored in env)
     captcha?: {
         provider?: 'none' | 'recaptcha' | 'hcaptcha';
@@ -160,6 +162,10 @@ const securitySchema = new Schema<ISecuritySettings>({
     allowedDomains: {
         type: [String],
         default: [],
+    },
+    isVpnProtected: {
+        type: Boolean,
+        default: false,
     },
     // CAPTCHA configuration
     captcha: {

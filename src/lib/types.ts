@@ -102,6 +102,8 @@ export interface SecuritySettings {
     siteKey?: string;
     secretKey?: string; // stored in env in production, but optional here
   };
+  // If true, users connecting through VPN will be shown a warning modal and required to disable VPN
+  isVpnProtected?: boolean;
 }
 
 export interface SystemSettings {

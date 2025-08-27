@@ -21,10 +21,19 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Shield, Lock, Clock, AlertTriangle, Plus, X, Globe } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { WebsiteSettings, SecuritySettings } from '@/lib/types';
 
 const securitySchema = z.object({
   enableTwoFactor: z.boolean(),
+  isVpnProtected: z.boolean().optional(),
   sessionTimeout: z.number().min(5, 'Session timeout must be at least 5 minutes').max(1440, 'Session timeout cannot exceed 24 hours'),
   maxLoginAttempts: z.number().min(1, 'Must allow at least 1 login attempt').max(20, 'Maximum 20 login attempts allowed'),
   lockoutDuration: z.number().min(1, 'Lockout duration must be at least 1 minute').max(1440, 'Lockout duration cannot exceed 24 hours'),
@@ -58,6 +67,8 @@ export function SecuritySettingsForm({ settings, onChange, isLoading }: Security
       enableCaptcha: settings?.security?.enableCaptcha || false,
       allowedDomains: settings?.security?.allowedDomains || [],
       captcha: settings?.security?.captcha || { provider: 'none', siteKey: '', secretKey: '' },
+      // New VPN protection flag
+      isVpnProtected: settings?.security?.isVpnProtected || false,
     },
     mode: 'onChange',
   });
@@ -68,6 +79,7 @@ export function SecuritySettingsForm({ settings, onChange, isLoading }: Security
       const security = settings.security;
       form.reset({
         enableTwoFactor: security.enableTwoFactor || false,
+        isVpnProtected: security.isVpnProtected || false,
         sessionTimeout: security.sessionTimeout || 60,
         maxLoginAttempts: security.maxLoginAttempts || 5,
         lockoutDuration: security.lockoutDuration || 15,
@@ -87,6 +99,43 @@ export function SecuritySettingsForm({ settings, onChange, isLoading }: Security
     });
     return () => subscription.unsubscribe();
   }, [form, onChange]);
+
+  // VPN modal state
+  const [isVpnModalOpen, setIsVpnModalOpen] = useState(false);
+  const [publicIp, setPublicIp] = useState<string | null>(null);
+  const [checkingIp, setCheckingIp] = useState(false);
+
+  // Simple public IP check
+  const checkPublicIp = async () => {
+    try {
+      setCheckingIp(true);
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      setPublicIp(data.ip);
+      setCheckingIp(false);
+      return data.ip;
+    } catch (err) {
+      setCheckingIp(false);
+      setPublicIp(null);
+      return null;
+    }
+  };
+
+  // When user enables VPN protection, perform IP check and show modal if a VPN is suspected.
+  // Note: robust VPN detection requires external services; here we simply show the modal when
+  // isVpnProtected is enabled and we can fetch the public IP — the admin can instruct users.
+  useEffect(() => {
+    const sub = form.watch(async (value, { name }) => {
+      if (name === 'isVpnProtected' && value.isVpnProtected) {
+        const ip = await checkPublicIp();
+        // Heuristic: if we get an IP back, show the modal instructing to disable VPN when users connect via VPN.
+        if (ip) {
+          setIsVpnModalOpen(true);
+        }
+      }
+    });
+    return () => sub.unsubscribe();
+  }, [form]);
 
   // Add allowed domain
   const addDomain = () => {
@@ -191,6 +240,33 @@ export function SecuritySettingsForm({ settings, onChange, isLoading }: Security
                       <Switch
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isLoading}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {/* VPN Protection Toggle */}
+              <FormField
+                control={form.control}
+                name="isVpnProtected"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">VPN Protection</FormLabel>
+                      <FormDescription>
+                        When enabled, users connecting via VPN will be shown instructions to disable VPN before proceeding.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          // keep parent informed
+                          onChange({ ...form.getValues() } as Partial<SecuritySettings>);
+                        }}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -463,6 +539,37 @@ export function SecuritySettingsForm({ settings, onChange, isLoading }: Security
           </CardContent>
         </Card>
       </Form>
+      {/* VPN modal shown to admins when VPN protection is enabled to instruct end-users */}
+      <Dialog open={isVpnModalOpen} onOpenChange={setIsVpnModalOpen}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>VPN Protection Enabled</DialogTitle>
+            <DialogDescription>
+              Your site is now configured to require users to disable VPN before continuing. When a user connects while using a VPN, they will see instructions to disable it and will be able to refresh to re-check their connection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              <p>Current public IP: {publicIp ?? (checkingIp ? 'Checking...' : 'Unavailable')}</p>
+              <p className="mt-2">If you are testing this locally, try enabling/disabling your VPN or proxy and then click Refresh below.</p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => { setIsVpnModalOpen(false); }}>
+              Close
+            </Button>
+            <Button onClick={async () => {
+              await checkPublicIp();
+              // re-open if still set (keeps modal open to allow testing)
+              setIsVpnModalOpen(true);
+            }}>
+              Refresh
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

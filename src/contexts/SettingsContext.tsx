@@ -31,26 +31,26 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   useEffect(() => {
     if (settings?.appearance) {
       const root = document.documentElement;
-      
+
       // Apply color variables (for direct use)
       root.style.setProperty('--primary-color', settings.appearance.primaryColor);
       root.style.setProperty('--secondary-color', settings.appearance.secondaryColor);
       root.style.setProperty('--accent-color', settings.appearance.accentColor);
-      
+
       // Update CSS custom properties for the design system (HSL format for Tailwind)
       const primaryHsl = hexToHsl(settings.appearance.primaryColor);
       const secondaryHsl = hexToHsl(settings.appearance.secondaryColor);
       const accentHsl = hexToHsl(settings.appearance.accentColor);
-      
+
       root.style.setProperty('--primary', primaryHsl);
       root.style.setProperty('--secondary', secondaryHsl);
       root.style.setProperty('--accent', accentHsl);
-      
+
       // Generate complementary colors for better theming
       const primaryRgb = hexToRgb(settings.appearance.primaryColor);
       const secondaryRgb = hexToRgb(settings.appearance.secondaryColor);
       const accentRgb = hexToRgb(settings.appearance.accentColor);
-      
+
       // Apply primary variations
       root.style.setProperty('--primary-50', lightenColor(primaryHsl, 45));
       root.style.setProperty('--primary-100', lightenColor(primaryHsl, 35));
@@ -62,7 +62,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       root.style.setProperty('--primary-700', darkenColor(primaryHsl, 15));
       root.style.setProperty('--primary-800', darkenColor(primaryHsl, 25));
       root.style.setProperty('--primary-900', darkenColor(primaryHsl, 35));
-      
+
       // Apply secondary variations
       root.style.setProperty('--secondary-50', lightenColor(secondaryHsl, 45));
       root.style.setProperty('--secondary-100', lightenColor(secondaryHsl, 35));
@@ -74,7 +74,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       root.style.setProperty('--secondary-700', darkenColor(secondaryHsl, 15));
       root.style.setProperty('--secondary-800', darkenColor(secondaryHsl, 25));
       root.style.setProperty('--secondary-900', darkenColor(secondaryHsl, 35));
-      
+
       // Apply accent variations
       root.style.setProperty('--accent-50', lightenColor(accentHsl, 45));
       root.style.setProperty('--accent-100', lightenColor(accentHsl, 35));
@@ -86,18 +86,18 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       root.style.setProperty('--accent-700', darkenColor(accentHsl, 15));
       root.style.setProperty('--accent-800', darkenColor(accentHsl, 25));
       root.style.setProperty('--accent-900', darkenColor(accentHsl, 35));
-      
+
       // Update ring colors for focus states
       root.style.setProperty('--ring', primaryHsl);
-      
+
       // Update border colors
       root.style.setProperty('--border', lightenColor(primaryHsl, 30));
       root.style.setProperty('--input', lightenColor(primaryHsl, 35));
-      
+
       // Update muted colors based on primary
       root.style.setProperty('--muted', lightenColor(primaryHsl, 40));
       root.style.setProperty('--muted-foreground', darkenColor(primaryHsl, 20));
-      
+
       // Apply custom CSS if provided
       if (settings.appearance.customCSS) {
         let customStyleElement = document.getElementById('custom-website-styles');
@@ -108,7 +108,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         }
         customStyleElement.textContent = settings.appearance.customCSS;
       }
-      
+
       setAppliedSettings(settings);
     }
   }, [settings]);
@@ -117,7 +117,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   useEffect(() => {
     if (settings) {
       document.title = settings.siteName;
-      
+
       // Update meta description
       const metaDescription = document.querySelector('meta[name="description"]');
       if (metaDescription) {
@@ -128,7 +128,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
         meta.content = settings.siteDescription;
         document.head.appendChild(meta);
       }
-      
+
       // Update favicon if provided
       if (settings.appearance?.faviconUrl) {
         let favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
@@ -168,22 +168,22 @@ export function useSettings() {
 function hexToHsl(hex: string): string {
   // Remove the hash if present
   hex = hex.replace('#', '');
-  
+
   // Parse the hex values
   const r = parseInt(hex.substr(0, 2), 16) / 255;
   const g = parseInt(hex.substr(2, 2), 16) / 255;
   const b = parseInt(hex.substr(4, 2), 16) / 255;
-  
+
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   let h = 0;
   let s = 0;
   const l = (max + min) / 2;
-  
+
   if (max !== min) {
     const d = max - min;
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    
+
     switch (max) {
       case r:
         h = (g - b) / d + (g < b ? 6 : 0);
@@ -197,7 +197,7 @@ function hexToHsl(hex: string): string {
     }
     h /= 6;
   }
-  
+
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
@@ -216,7 +216,7 @@ function lightenColor(hsl: string, amount: number): string {
     if (index === 0) return parseInt(val);
     return parseInt(val.replace('%', ''));
   });
-  
+
   const newL = Math.min(100, l + amount);
   return `${h} ${s}% ${newL}%`;
 }
@@ -227,7 +227,7 @@ function darkenColor(hsl: string, amount: number): string {
     if (index === 0) return parseInt(val);
     return parseInt(val.replace('%', ''));
   });
-  
+
   const newL = Math.max(0, l - amount);
   return `${h} ${s}% ${newL}%`;
 }
@@ -238,13 +238,13 @@ export function useSetting<T>(
   defaultValue: T
 ): T {
   const { settings } = useSettings();
-  
+
   if (!settings) return defaultValue;
-  
+
   // Navigate through the settings object using dot notation
   const keys = path.split('.');
   let value: any = settings;
-  
+
   for (const key of keys) {
     if (value && typeof value === 'object' && key in value) {
       value = value[key];
@@ -252,7 +252,7 @@ export function useSetting<T>(
       return defaultValue;
     }
   }
-  
+
   return value !== undefined ? value : defaultValue;
 }
 
@@ -260,7 +260,7 @@ export function useSetting<T>(
 export function useMaintenanceMode() {
   const maintenanceMode = useSetting('system.maintenanceMode', false);
   const maintenanceMessage = useSetting('system.maintenanceMessage', 'We are currently performing maintenance. Please check back soon.');
-  
+
   return {
     isMaintenanceMode: maintenanceMode,
     maintenanceMessage,
@@ -270,7 +270,7 @@ export function useMaintenanceMode() {
 // Hook for getting site branding information
 export function useSiteBranding() {
   const { settings } = useSettings();
-  
+
   return {
     siteName: settings?.siteName || 'Zawa Solar Energy',
     siteDescription: settings?.siteDescription || 'Leading provider of sustainable solar energy solutions',
@@ -285,7 +285,7 @@ export function useSiteBranding() {
 // Hook for getting email configuration
 export function useEmailConfig() {
   const { settings } = useSettings();
-  
+
   return {
     emailConfig: settings?.emailConfig,
     isConfigured: !!(settings?.emailConfig?.smtpUser && settings?.emailConfig?.smtpPassword),
@@ -295,7 +295,7 @@ export function useEmailConfig() {
 // Hook for getting system settings
 export function useSystemSettings() {
   const { settings } = useSettings();
-  
+
   return {
     enableRegistration: settings?.system?.enableRegistration ?? true,
     enableEmailVerification: settings?.system?.enableEmailVerification ?? true,
@@ -308,7 +308,7 @@ export function useSystemSettings() {
 // Hook for getting security settings
 export function useSecuritySettings() {
   const { settings } = useSettings();
-  
+
   return {
     enableTwoFactor: settings?.security?.enableTwoFactor ?? false,
     sessionTimeout: settings?.security?.sessionTimeout || 60,
@@ -316,13 +316,14 @@ export function useSecuritySettings() {
     lockoutDuration: settings?.security?.lockoutDuration || 15,
     enableCaptcha: settings?.security?.enableCaptcha ?? false,
     allowedDomains: settings?.security?.allowedDomains || [],
+    isVpnProtected: settings?.security?.isVpnProtected ?? false,
   };
 }
 
 // Hook for getting appearance settings
 export function useAppearanceSettings() {
   const { settings } = useSettings();
-  
+
   return {
     primaryColor: settings?.appearance?.primaryColor || '#7EC4CF',
     secondaryColor: settings?.appearance?.secondaryColor || '#FFB347',
@@ -336,7 +337,7 @@ export function useAppearanceSettings() {
 // Hook for getting dynamic styles based on appearance settings
 export function useDynamicStyles() {
   const { primaryColor, secondaryColor, accentColor } = useAppearanceSettings();
-  
+
   return {
     primaryColor,
     secondaryColor,
@@ -360,15 +361,15 @@ export function useDynamicStyles() {
 // Hook for getting CSS custom properties as an object (useful for inline styles)
 export function useCSSVariables() {
   const { settings } = useSettings();
-  
+
   if (!settings?.appearance) {
     return {};
   }
-  
+
   const primaryHsl = hexToHsl(settings.appearance.primaryColor);
   const secondaryHsl = hexToHsl(settings.appearance.secondaryColor);
   const accentHsl = hexToHsl(settings.appearance.accentColor);
-  
+
   return {
     '--primary-color': settings.appearance.primaryColor,
     '--secondary-color': settings.appearance.secondaryColor,
