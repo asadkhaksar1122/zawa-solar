@@ -68,3 +68,66 @@ export interface TeamMember {
   createdAt?: string;
   updatedAt?: string;
 }
+
+// Website Settings Types
+export interface EmailConfig {
+  smtpHost: string;
+  smtpPort: number;
+  smtpSecure: boolean;
+  smtpUser: string;
+  smtpPassword?: string; // optional: may be present when loading settings, stored securely in env for production
+  fromEmail: string;
+  fromName: string;
+  // Note: smtpPassword is stored in environment variables for security
+}
+
+export interface AppearanceSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  logoUrl?: string;
+  faviconUrl?: string;
+  customCSS?: string;
+}
+
+export interface SecuritySettings {
+  enableTwoFactor: boolean;
+  sessionTimeout: number;
+  maxLoginAttempts: number;
+  lockoutDuration: number;
+  enableCaptcha: boolean;
+  allowedDomains: string[];
+  captcha?: {
+    provider?: 'none' | 'recaptcha' | 'hcaptcha';
+    siteKey?: string;
+    secretKey?: string; // stored in env in production, but optional here
+  };
+}
+
+export interface SystemSettings {
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  enableRegistration: boolean;
+  enableEmailVerification: boolean;
+  defaultUserRole: 'user' | 'admin';
+  maxFileUploadSize: number;
+  allowedFileTypes: string[];
+}
+
+export interface WebsiteSettings {
+  _id: string;
+  siteName: string;
+  siteDescription: string;
+  siteUrl: string;
+  adminEmail: string;
+  timezone: string;
+  language: string;
+  emailConfig: EmailConfig;
+  appearance: AppearanceSettings;
+  security: SecuritySettings;
+  system: SystemSettings;
+  isActive: boolean;
+  lastUpdatedBy?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}

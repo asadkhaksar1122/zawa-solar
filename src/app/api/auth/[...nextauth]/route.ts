@@ -19,37 +19,56 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          // Connect to database
           await dbConnect();
-
-          // Find user by email
           const user = await UserModel.findOne({ email: credentials.email });
 
-          if (!user) {
+          if (!user || !user.isEmailVerified) {
             return null;
           }
 
-          // Check if email is verified (this should not be reached due to pre-check)
-          if (!user.isEmailVerified) {
-            return null;
+          // Handle 2FA verified login
+          if (credentials.password === 'verified' && user.role === 'admin') {
+            return {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+            };
           }
 
-          // Verify password
+          // Regular password verification
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
           if (!isPasswordValid) {
             return null;
           }
 
-          // Return user object that will be saved in JWT
+          // Check if admin needs 2FA based on website settings
+          if (user.role === 'admin') {
+            try {
+              const { WebsiteSettings } = require('@/lib/models/websiteSettings');
+              const settings = await WebsiteSettings.findOne({ isActive: true });
+              if (settings?.security?.enableTwoFactor) {
+                throw new Error('2FA_REQUIRED');
+              }
+            } catch (error) {
+              if (error instanceof Error && error.message === '2FA_REQUIRED') {
+                throw error;
+              }
+              console.error('Error checking 2FA settings:', error);
+            }
+          }
+
           return {
-            id: user.id, // Use Mongoose virtual 'id' getter
+            id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
           };
         } catch (error) {
           console.error('Auth error:', error);
+          if (error instanceof Error && error.message === '2FA_REQUIRED') {
+            throw error;
+          }
           return null;
         }
       },

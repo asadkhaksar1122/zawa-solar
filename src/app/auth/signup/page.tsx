@@ -28,6 +28,10 @@ import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useState } from 'react';
+import { useSystemSettings } from '@/contexts/SettingsContext';
+import { useSecuritySettings } from '@/contexts/SettingsContext';
+import { CaptchaComponent } from '@/components/security/CaptchaComponent';
+import { AlertCircle } from 'lucide-react';
 
 const signupFormSchema = z
   .object({
@@ -54,6 +58,7 @@ type SignupFormValues = z.infer<typeof signupFormSchema>;
 export default function SignupPage() {
   const router = useRouter();
   const [customError, setCustomError] = useState<string | null>(null);
+  const { enableRegistration } = useSystemSettings();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
@@ -65,8 +70,45 @@ export default function SignupPage() {
     },
   });
 
+  const { enableCaptcha } = useSecuritySettings();
+  const [captchaValid, setCaptchaValid] = useState(false);
+
+  // If registration is disabled, show message
+  if (!enableRegistration) {
+    return (
+      <Card className="w-full max-w-md shadow-xl">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="font-headline text-2xl">Registration Disabled</CardTitle>
+          <CardDescription>
+            New user registration is currently disabled.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Registration is currently disabled by the administrator. Please contact support if you need access.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center space-y-2">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
+            Already have an account?{' '}
+            <Link href="/auth/login" className="font-medium text-primary hover:underline">
+              Log in
+            </Link>
+          </p>
+        </CardFooter>
+      </Card>
+    );
+  }
+
   async function onSubmit(data: SignupFormValues) {
     setCustomError(null);
+    if (enableCaptcha && !captchaValid) {
+      setCustomError('Please complete the CAPTCHA verification.');
+      return;
+    }
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -178,6 +220,11 @@ export default function SignupPage() {
                 </FormItem>
               )}
             />
+            {enableCaptcha && (
+              <div className="pt-2">
+                <CaptchaComponent onVerify={setCaptchaValid} />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
             </Button>

@@ -4,6 +4,7 @@ import { dbConnect } from '@/lib/mongodb';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 import { sendOTPEmail, generateOTP } from '@/lib/email';
+import { WebsiteSettings } from '@/lib/models/websiteSettings';
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +15,14 @@ export async function POST(request: Request) {
     }
 
     await dbConnect();
+
+    // Check if registration is enabled
+    const settings = await WebsiteSettings.findOne({ isActive: true });
+    if (settings && !settings.system.enableRegistration) {
+      return NextResponse.json({ 
+        message: 'Registration is currently disabled. Please contact the administrator.' 
+      }, { status: 403 });
+    }
 
     // Check if user already exists
     const existingUser = await UserModel.findOne({ email });

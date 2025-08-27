@@ -11,6 +11,9 @@ export interface IUser extends Document {
     otpExpires?: Date;
     resetPasswordToken?: string;
     resetPasswordExpires?: Date;
+    twoFactorEnabled?: boolean;
+    twoFactorOtp?: string;
+    twoFactorOtpExpires?: Date;
 }
 
 // Create the schema
@@ -53,6 +56,18 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
         required: false,
     },
     resetPasswordExpires: {
+        type: Date,
+        required: false,
+    },
+    twoFactorEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    twoFactorOtp: {
+        type: String,
+        required: false,
+    },
+    twoFactorOtpExpires: {
         type: Date,
         required: false,
     },

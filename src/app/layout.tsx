@@ -5,7 +5,12 @@ import { ReduxProvider } from '@/lib/redux/ReduxProvider';
 import { NextAuthProvider } from './NextAuthProvider';
 import { Toaster } from 'sonner'; // We'll create this next
 import Chatbot from '@/components/Chatbot';
+import { SettingsProvider } from '@/contexts/SettingsContext';
+import { SecurityProvider } from '@/contexts/SecurityContext';
+import { MaintenanceMode } from '@/components/system/MaintenanceMode';
+import { SessionTimeoutWarning } from '@/components/security/SessionTimeoutWarning';
 
+// Dynamic metadata will be handled by the SettingsProvider
 export const metadata: Metadata = {
   title: 'Zawa Soler Energy',
   description: 'Your gateway to solar energy solutions.',
@@ -31,9 +36,16 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <NextAuthProvider>
           <ReduxProvider>
-            <Toaster richColors position="top-center" closeButton />
-            {children}
-            <Chatbot></Chatbot>
+            <SettingsProvider>
+              <SecurityProvider>
+                <Toaster richColors position="top-center" closeButton />
+                <MaintenanceMode>
+                  {children}
+                  <Chatbot></Chatbot>
+                  <SessionTimeoutWarning />
+                </MaintenanceMode>
+              </SecurityProvider>
+            </SettingsProvider>
           </ReduxProvider>
         </NextAuthProvider>
       </body>

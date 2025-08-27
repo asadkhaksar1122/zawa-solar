@@ -78,16 +78,16 @@ export function AdminHeader() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <div title="Feature not available yet" className="cursor-not-allowed">
-              <DropdownMenuItem disabled className="opacity-50">
+            <Link href="/admin/setting" >
+              <DropdownMenuItem >
                 Settings
               </DropdownMenuItem>
-            </div>
-            <div title="Feature not available yet" className="cursor-not-allowed">
-              <DropdownMenuItem disabled className="opacity-50">
+            </Link>
+            <Link href="/admin/support" >
+              <DropdownMenuItem  >
                 Support
               </DropdownMenuItem>
-            </div>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className='cursor-pointer' >Logout</DropdownMenuItem>
           </DropdownMenuContent>

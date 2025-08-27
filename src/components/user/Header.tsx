@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChangePasswordDialog } from './changepassword';
+import { useSiteBranding, useSystemSettings } from '@/contexts/SettingsContext';
 
 
 // ---------------- CHANGE NAME SCHEMA ----------------
@@ -68,6 +69,7 @@ export function UserHeader() {
   const router = useRouter();
   const { data: session, status, update } = useSession();
   const isLoadingSession = status === 'loading';
+  const { enableRegistration } = useSystemSettings();
 
   // State for dialogs
   const [isChangeNameDialogOpen, setIsChangeNameDialogOpen] = useState(false);
@@ -190,9 +192,11 @@ export function UserHeader() {
               <Button variant="ghost" asChild>
                 <Link href="/auth/login">Login</Link>
               </Button>
-              <Button variant="default" asChild>
-                <Link href="/auth/signup">Sign Up</Link>
-              </Button>
+              {enableRegistration && (
+                <Button variant="default" asChild>
+                  <Link href="/auth/signup">Sign Up</Link>
+                </Button>
+              )}
             </>
           )}
         </nav>
@@ -246,7 +250,9 @@ export function UserHeader() {
                 ) : (
                   <>
                     <SheetClose asChild><Button variant="outline" className="w-full" asChild><Link href="/auth/login">Login</Link></Button></SheetClose>
-                    <SheetClose asChild><Button className="w-full" asChild><Link href="/auth/signup">Sign Up</Link></Button></SheetClose>
+                    {enableRegistration && (
+                      <SheetClose asChild><Button className="w-full" asChild><Link href="/auth/signup">Sign Up</Link></Button></SheetClose>
+                    )}
                   </>
                 )}
               </div>

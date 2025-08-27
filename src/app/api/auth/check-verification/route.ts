@@ -46,10 +46,26 @@ export async function POST(request: Request) {
       }, { status: 200 });
     }
 
+    // Check if user is admin and get 2FA status from website settings
+    const isAdmin = user.role === 'admin';
+    let twoFactorRequired = false;
+    
+    if (isAdmin) {
+      try {
+        const { WebsiteSettings } = require('@/lib/models/websiteSettings');
+        const settings = await WebsiteSettings.findOne({ isActive: true });
+        twoFactorRequired = settings?.security?.enableTwoFactor || false;
+      } catch (error) {
+        console.error('Error checking 2FA settings:', error);
+      }
+    }
+
     return NextResponse.json({ 
       verified: true, 
       userExists: true,
       credentialsValid: true,
+      isAdmin,
+      twoFactorEnabled: twoFactorRequired,
       message: 'Email is verified. You can proceed with login.'
     }, { status: 200 });
 

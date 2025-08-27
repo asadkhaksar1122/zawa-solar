@@ -4,6 +4,7 @@ import { Logo } from '@/components/shared/Logo';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useSubscribeMutation } from '@/lib/redux/api/subscriptionApi';
+import { useSiteBranding } from '@/contexts/SettingsContext';
 import {
   Mail,
   Phone,
@@ -23,6 +24,7 @@ import {
 
 export function UserFooter() {
   const currentYear = new Date().getFullYear();
+  const { siteName, siteDescription } = useSiteBranding();
   
   // Subscription state
   const [email, setEmail] = useState('');
@@ -162,7 +164,7 @@ export function UserFooter() {
                 </div>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs">
-                Empowering homes and businesses with sustainable solar energy solutions for a brighter, cleaner future.
+                {siteDescription}
               </p>
               {/* Social Links */}
               <div className="flex gap-2 sm:gap-3 pt-2">

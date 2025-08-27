@@ -2,8 +2,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Box, Users, Activity } from "lucide-react";
+import { Box, Users, Activity, Shield } from "lucide-react";
 import { useGetDashboardQuery } from "@/lib/redux/api/dashboardApi";
+import { SystemStatus } from "@/components/admin/SystemStatus";
+import { SecurityDashboard } from "@/components/admin/SecurityDashboard";
 
 export default function AdminDashboardPage() {
   const { data, error, isLoading } = useGetDashboardQuery();
@@ -103,6 +105,12 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
+      {/* System Status */}
+      <SystemStatus />
+
+      {/* Security Dashboard */}
+      <SecurityDashboard />
+
       <Card>
         <CardHeader>
           <CardTitle className="font-headline">Quick Actions</CardTitle>
@@ -114,6 +122,12 @@ export default function AdminDashboardPage() {
           </Button>
           <Button variant="outline" asChild>
             <Link href="/admin/solutions">Add New Solution</Link>
+          </Button>
+          <Button variant="outline" asChild className="gap-2">
+            <Link href="/admin/setting">
+              <Shield className="h-4 w-4" />
+              Security Settings
+            </Link>
           </Button>
         </CardContent>
       </Card>

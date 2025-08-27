@@ -13,7 +13,7 @@ const navItems = [
   { href: '/admin/subscriptions', label: 'Subscriptions', icon: Mail }, // New subscription item
   { href: '/admin/contact-settings', label: 'Contact Settings', icon: Phone },
   { href: '/admin/users', label: 'Manage Users', icon: Users },
-  // { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/setting', label: 'Website Settings', icon: Settings },
 ];
 
 interface AdminSidebarNavProps {

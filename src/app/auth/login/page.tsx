@@ -29,6 +29,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CaptchaComponent } from '@/components/security/CaptchaComponent';
+import { useSecuritySettings } from '@/contexts/SettingsContext';
 
 const loginFormSchema = z.object({
   email: z
@@ -49,6 +51,10 @@ export default function LoginPage() {
   const [customError, setCustomError] = useState<string | null>(null);
   const [showResendOTP, setShowResendOTP] = useState(false);
   const [userEmail, setUserEmail] = useState<string>('');
+  const [captchaValid, setCaptchaValid] = useState(false);
+
+  const { enableCaptcha } = useSecuritySettings();
+  const { maxLoginAttempts, lockoutDuration } = useSecuritySettings();
 
 
   const form = useForm<LoginFormValues>({
@@ -63,7 +69,27 @@ export default function LoginPage() {
     setCustomError(null); // Clear previous custom errors
     setShowResendOTP(false);
 
+    // Check lockout state for this email
+    const attemptKey = `loginAttempts:${data.email}`;
     try {
+      const stored = localStorage.getItem(attemptKey);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.isLocked && parsed.lockoutTime && parsed.lockoutTime > Date.now()) {
+          const minutesLeft = Math.ceil((parsed.lockoutTime - Date.now()) / 1000 / 60);
+          setCustomError(`Account locked due to too many failed attempts. Try again in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}.`);
+          return;
+        }
+      }
+    } catch (e) {
+      // ignore parse errors
+    }
+
+    try {
+      if (enableCaptcha && !captchaValid) {
+        setCustomError('Please complete the CAPTCHA verification.');
+        return;
+      }
       // First, check email verification status
       const checkResponse = await fetch('/api/auth/check-verification', {
         method: 'POST',
@@ -79,6 +105,22 @@ export default function LoginPage() {
       const checkResult = await checkResponse.json();
 
       if (!checkResult.userExists || !checkResult.credentialsValid) {
+        // Increment failed attempt counter for this email
+        try {
+          const attemptKey = `loginAttempts:${data.email}`;
+          const stored = localStorage.getItem(attemptKey);
+          let parsed = stored ? JSON.parse(stored) : { attempts: 0, maxAttempts: maxLoginAttempts || 5 };
+          parsed.attempts = (parsed.attempts || 0) + 1;
+          parsed.maxAttempts = maxLoginAttempts || 5;
+          if (parsed.attempts >= (parsed.maxAttempts || 5)) {
+            parsed.isLocked = true;
+            parsed.lockoutTime = Date.now() + ((lockoutDuration || 15) * 60 * 1000);
+          }
+          localStorage.setItem(attemptKey, JSON.stringify(parsed));
+        } catch (e) {
+          // ignore storage errors
+        }
+
         setCustomError('Invalid email or password. Please try again.');
         return;
       }
@@ -90,26 +132,65 @@ export default function LoginPage() {
         return;
       }
 
+      // Check if user is admin and needs 2FA
+      if (checkResult.isAdmin && checkResult.twoFactorEnabled) {
+        // Send 2FA OTP
+        const otpResponse = await fetch('/api/auth/send-2fa-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: data.email }),
+        });
+
+        if (otpResponse.ok) {
+          router.push(`/auth/two-factor?email=${encodeURIComponent(data.email)}`);
+          return;
+        } else {
+          setCustomError('Failed to send 2FA code. Please try again.');
+          return;
+        }
+      }
+
       // If email is verified, proceed with NextAuth login
       const result = await signIn('credentials', {
-        redirect: false, // We'll handle redirect manually
+        redirect: false,
         email: data.email,
         password: data.password,
         callbackUrl: callbackUrl,
       });
 
       if (result?.error) {
+        // Increment failed attempt counter for this email (on signIn failure)
+        try {
+          const attemptKey = `loginAttempts:${data.email}`;
+          const stored = localStorage.getItem(attemptKey);
+          let parsed = stored ? JSON.parse(stored) : { attempts: 0, maxAttempts: maxLoginAttempts || 5 };
+          parsed.attempts = (parsed.attempts || 0) + 1;
+          parsed.maxAttempts = maxLoginAttempts || 5;
+          if (parsed.attempts >= (parsed.maxAttempts || 5)) {
+            parsed.isLocked = true;
+            parsed.lockoutTime = Date.now() + ((lockoutDuration || 15) * 60 * 1000);
+          }
+          localStorage.setItem(attemptKey, JSON.stringify(parsed));
+        } catch (e) {
+          // ignore storage errors
+        }
+
         setCustomError('Login failed. Please try again.');
       } else if (result?.ok) {
-        // Login successful
+        // Clear attempt counter on success
+        try {
+          const attemptKey = `loginAttempts:${data.email}`;
+          localStorage.removeItem(attemptKey);
+        } catch (e) { }
+
         Swal.fire({
           icon: 'success',
           title: 'Login Successful!',
           timer: 1500,
           showConfirmButton: false,
         }).then(() => {
-          router.push(callbackUrl); // Redirect to the intended page or dashboard
-          router.refresh(); // Refresh to update session state in header
+          router.push(callbackUrl);
+          router.refresh();
         });
       }
     } catch (error) {
@@ -201,6 +282,12 @@ export default function LoginPage() {
                 </FormItem>
               )}
             />
+            {/* Render CAPTCHA when enabled in settings */}
+            {enableCaptcha && (
+              <div className="pt-2">
+                <CaptchaComponent onVerify={setCaptchaValid} />
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <Link href="/auth/forgot-password" className="text-sm text-primary hover:underline">
                 Forgot password?
