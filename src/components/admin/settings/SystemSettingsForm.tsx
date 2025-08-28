@@ -115,7 +115,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name) {
-        console.log('SystemSettingsForm - Field changed:', name, 'Value:', value[name]);
+        console.log('SystemSettingsForm - Field changed:', name, 'Value:', (value as any)[name]);
         onChange(value as Partial<SystemSettings>);
       }
     });

@@ -73,7 +73,6 @@ const PrivacyPolicy: React.FC = () => {
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
             <UserHeader />
             {/* Animated Background Elements */}
-
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
                 <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse delay-700" />
@@ -151,32 +150,34 @@ const PrivacyPolicy: React.FC = () => {
                 </div>
 
                 <div className="container mx-auto px-4 py-12">
-                    <div className="flex flex-col lg:flex-row gap-8">
+                    <div className="flex flex-col lg:flex-row gap-8 items-start">
                         {/* Sticky Navigation */}
-                        <aside className="lg:w-1/4">
-                            <div className="sticky top-24 bg-card/50 backdrop-blur-lg rounded-2xl p-6 border border-border shadow-xl">
-                                <h3 className="font-headline text-lg font-semibold mb-4 flex items-center gap-2">
-                                    <FileText className="w-5 h-5 text-primary" />
-                                    Quick Navigation
-                                </h3>
-                                <nav className="space-y-2">
-                                    {sections.map((section) => {
-                                        const Icon = section.icon;
-                                        return (
-                                            <button
-                                                key={section.id}
-                                                onClick={() => scrollToSection(section.id)}
-                                                className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 group
+                        <aside className="hidden lg:block lg:w-1/4">
+                            <div className="sticky top-4 h-fit">
+                                <div className="bg-card/50 backdrop-blur-lg rounded-2xl p-6 border border-border shadow-xl">
+                                    <h3 className="font-headline text-lg font-semibold mb-4 flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-primary" />
+                                        Quick Navigation
+                                    </h3>
+                                    <nav className="space-y-2">
+                                        {sections.map((section) => {
+                                            const Icon = section.icon;
+                                            return (
+                                                <button
+                                                    key={section.id}
+                                                    onClick={() => scrollToSection(section.id)}
+                                                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 flex items-center gap-3 group
                           ${activeSection === section.id
-                                                        ? 'bg-primary text-primary-foreground shadow-lg scale-105'
-                                                        : 'hover:bg-primary/10 hover:scale-102'}`}
-                                            >
-                                                <Icon className={`w-4 h-4 ${activeSection === section.id ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
-                                                <span className="font-body text-sm">{section.title}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </nav>
+                                                            ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                                                            : 'hover:bg-primary/10 hover:scale-102'}`}
+                                                >
+                                                    <Icon className={`w-4 h-4 ${activeSection === section.id ? 'animate-pulse' : 'group-hover:rotate-12'}`} />
+                                                    <span className="font-body text-sm">{section.title}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </nav>
+                                </div>
                             </div>
                         </aside>
 
