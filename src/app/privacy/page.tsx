@@ -31,7 +31,14 @@ const PrivacyPolicy: React.FC = () => {
     const [isVisible, setIsVisible] = useState<Record<string, boolean>>({});
     const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
-    // Intersection Observer for animations
+    // New: affix state/refs for the left navigation
+    const TOP_OFFSET = 16; // equals Tailwind top-4 (16px)
+    const asideWrapRef = useRef<HTMLDivElement | null>(null);
+    const navBoxRef = useRef<HTMLDivElement | null>(null);
+    const [isNavFixed, setIsNavFixed] = useState(false);
+    const [navDims, setNavDims] = useState({ left: 0, width: 0, height: 0 });
+
+    // Intersection Observer for animations and active section tracking
     useEffect(() => {
         const observer = new IntersectionObserver(
             (entries) => {
@@ -52,6 +59,54 @@ const PrivacyPolicy: React.FC = () => {
         });
 
         return () => observer.disconnect();
+    }, []);
+
+    // New: handle fixing/unfixing the nav between Overview and Contact
+    useEffect(() => {
+        const updateDims = () => {
+            if (!asideWrapRef.current) return;
+            const rect = asideWrapRef.current.getBoundingClientRect();
+            setNavDims(prev => ({
+                left: rect.left + window.scrollX,
+                width: rect.width,
+                height: navBoxRef.current ? navBoxRef.current.offsetHeight : prev.height
+            }));
+        };
+
+        const updateAffix = () => {
+            const overview = sectionRefs.current.overview;
+            const contact = sectionRefs.current.contact;
+            if (!overview || !contact) return;
+
+            const overviewTop = overview.getBoundingClientRect().top + window.scrollY;
+            const contactRect = contact.getBoundingClientRect();
+            const contactTop = contactRect.top + window.scrollY;
+            const contactHeight = contactRect.height;
+
+            const startY = overviewTop - TOP_OFFSET; // when nav starts to be fixed
+            // Unfix when the bottom of the viewport reaches the middle of the Contact section
+            const stopY = contactTop + (contactHeight * 1) - window.innerHeight;
+
+            const y = window.scrollY;
+            const shouldFix = y >= startY && y < stopY;
+            setIsNavFixed(shouldFix);
+        };
+
+        const onScrollOrResize = () => {
+            window.requestAnimationFrame(() => {
+                updateDims();
+                updateAffix();
+            });
+        };
+
+        onScrollOrResize();
+        window.addEventListener('scroll', onScrollOrResize, { passive: true });
+        window.addEventListener('resize', onScrollOrResize);
+
+        return () => {
+            window.removeEventListener('scroll', onScrollOrResize);
+            window.removeEventListener('resize', onScrollOrResize);
+        };
     }, []);
 
     const sections = [
@@ -151,10 +206,25 @@ const PrivacyPolicy: React.FC = () => {
 
                 <div className="container mx-auto px-4 py-12">
                     <div className="flex flex-col lg:flex-row gap-8 items-start">
-                        {/* Sticky Navigation */}
-                        <aside className="hidden lg:block lg:w-1/4">
-                            <div className="sticky top-4 h-fit">
-                                <div className="bg-card/50 backdrop-blur-lg rounded-2xl p-6 border border-border shadow-xl">
+                        {/* Fixed-aware Navigation (becomes fixed between Overview and Contact) */}
+                        <aside className="hidden lg:block lg:w-1/4" ref={asideWrapRef}>
+                            {/* Placeholder to prevent layout shift when we set position: fixed */}
+                            <div style={{ height: isNavFixed ? navDims.height : 'auto' }}>
+                                <div
+                                    ref={navBoxRef}
+                                    className="bg-card/50 backdrop-blur-lg rounded-2xl p-6 border border-border shadow-xl"
+                                    style={
+                                        isNavFixed
+                                            ? {
+                                                position: 'fixed',
+                                                top: TOP_OFFSET,
+                                                left: navDims.left,
+                                                width: navDims.width,
+                                                zIndex: 40
+                                            }
+                                            : undefined
+                                    }
+                                >
                                     <h3 className="font-headline text-lg font-semibold mb-4 flex items-center gap-2">
                                         <FileText className="w-5 h-5 text-primary" />
                                         Quick Navigation

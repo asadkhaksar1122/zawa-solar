@@ -42,6 +42,7 @@ const TermsOfService = () => {
     const [scrollProgress, setScrollProgress] = useState<number>(0);
     const [isVisible, setIsVisible] = useState<Record<string, boolean>>({});
     const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
+    const ctaRef = useRef<HTMLDivElement>(null);
     const [hoveredCard, setHoveredCard] = useState<number | null>(null);
 
     // Add new state for sidebar positioning
@@ -54,46 +55,69 @@ const TermsOfService = () => {
 
     // Scroll progress indicator and sidebar fixing
     useEffect(() => {
-        const handleScroll = () => {
+        const HEADER_H = 88; // sticky header height
+
+        const measureSidebar = () => {
+            if (!sidebarContainerRef.current) return;
+            const rect = sidebarContainerRef.current.getBoundingClientRect();
+            setSidebarWidth(rect.width);
+            // account for page scroll so fixed left stays correct
+            setSidebarLeft(rect.left + window.scrollX);
+        };
+
+        const update = () => {
+            // progress bar
             const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
-            const currentProgress = (window.scrollY / totalScroll) * 100;
-            setScrollProgress(currentProgress);
+            setScrollProgress((window.scrollY / totalScroll) * 100);
 
-            // Check if hero section has been scrolled past
-            if (heroRef.current && sidebarContainerRef.current) {
+            // start fixing after hero is scrolled past the header
+            let shouldFix = false;
+            if (heroRef.current) {
                 const heroBottom = heroRef.current.getBoundingClientRect().bottom;
-                const shouldFix = heroBottom <= 88; // 88px is the header height
+                const pastHero = heroBottom <= HEADER_H;
+                shouldFix = pastHero;
+            }
 
-                // Get sidebar dimensions before fixing
-                if (!sidebarFixed && shouldFix) {
-                    const rect = sidebarContainerRef.current.getBoundingClientRect();
-                    setSidebarWidth(rect.width);
-                    setSidebarLeft(rect.left);
+            // stop fixing when the bottom of the CTA has reached the bottom of the viewport
+            if (ctaRef.current) {
+                const ctaBottomAbs = ctaRef.current.getBoundingClientRect().bottom + window.scrollY;
+                const viewportBottom = window.scrollY + window.innerHeight;
+                const reachedCtaBottom = viewportBottom > ctaBottomAbs;
+                if (reachedCtaBottom) {
+                    shouldFix = false;
                 }
-
-                setSidebarFixed(shouldFix);
             }
+
+            // capture dimensions the moment we switch to fixed
+            if (!sidebarFixed && shouldFix) {
+                measureSidebar();
+            }
+
+            setSidebarFixed(shouldFix);
         };
 
-        // Initial setup
-        const handleResize = () => {
-            if (sidebarContainerRef.current && !sidebarFixed) {
-                const rect = sidebarContainerRef.current.getBoundingClientRect();
-                setSidebarWidth(rect.width);
-                setSidebarLeft(rect.left);
-            }
+        const onScroll = () => {
+            window.requestAnimationFrame(update);
         };
 
-        window.addEventListener('scroll', handleScroll);
-        window.addEventListener('resize', handleResize);
-        handleScroll(); // Call once on mount
-        handleResize(); // Get initial dimensions
+        const onResize = () => {
+            window.requestAnimationFrame(() => {
+                measureSidebar();
+                update();
+            });
+        };
+
+        measureSidebar();
+        update();
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onResize);
 
         return () => {
-            window.removeEventListener('scroll', handleScroll);
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('resize', onResize);
         };
-    }, [sidebarFixed]);
+    }, [sidebarFixed]);;
 
     // Intersection Observer for animations
     useEffect(() => {
@@ -844,7 +868,7 @@ const TermsOfService = () => {
                             </section>
 
                             {/* Accept Terms CTA */}
-                            <div className="relative bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl p-8 border border-primary/30 shadow-2xl">
+                            <div ref={ctaRef} className="relative bg-gradient-to-br from-primary/20 to-accent/20 rounded-3xl p-8 border border-primary/30 shadow-2xl">
                                 <div className="text-center">
                                     <div className="inline-flex items-center justify-center p-4 bg-primary/10 rounded-full mb-6">
                                         <ScrollText className="w-10 h-10 text-primary" />
