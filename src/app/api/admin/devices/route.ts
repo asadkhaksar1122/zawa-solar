@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     // Check if the current session exists in the database
      const currentSessionId = (session.user as any).sessionId;
-     let currentSession = null;
+     let currentSession:unknown = null;
      
      if (currentSessionId) {
        currentSession = await SessionModel.findById(currentSessionId).lean();
@@ -239,6 +239,9 @@ export async function DELETE(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Store the session token for this session to invalidate it
+    let sessionToken = null;
 
     // Connect to database
     await dbConnect();

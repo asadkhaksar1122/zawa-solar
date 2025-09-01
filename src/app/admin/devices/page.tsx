@@ -85,6 +85,7 @@ export default function DevicesPage() {
       setLogoutLoading(sessionId);
       console.log('Logging out session:', sessionId);
       
+      // First, delete the session from the database
       const response = await fetch('/api/admin/devices', {
         method: 'DELETE',
         headers: {
@@ -104,9 +105,39 @@ export default function DevicesPage() {
       if (!response.ok) {
         throw new Error(responseData?.message || 'Failed to logout from device');
       }
+      
+      // Create a hidden iframe to trigger the remote logout
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.src = `/api/auth/remote-logout?sessionId=${sessionId}`;
+      
+      // Listen for the logout-complete message from the iframe
+      const messageListener = (event: MessageEvent) => {
+        if (event.data === 'logout-complete') {
+          // Remove the iframe and event listener
+          document.body.removeChild(iframe);
+          window.removeEventListener('message', messageListener);
+          
+          // Refresh the sessions list
+          fetchSessions();
+        }
+      };
+      
+      // Add the event listener
+      window.addEventListener('message', messageListener);
+      
+      // Add the iframe to the document
+      document.body.appendChild(iframe);
+      
+      // Set a timeout to remove the iframe and refresh sessions if no message is received
+      setTimeout(() => {
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+          window.removeEventListener('message', messageListener);
+          fetchSessions();
+        }
+      }, 5000);
 
-      // Refresh the sessions list
-      await fetchSessions();
       setError(''); // Clear any previous errors on success
     } catch (err) {
       console.error('Error during logout:', err);
