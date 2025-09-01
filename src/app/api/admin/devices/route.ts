@@ -256,7 +256,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Prevent removing the current session
+    // Get current session ID for comparison
     const currentSessionId = (session.user as any).sessionId;
     console.log('Current session ID:', currentSessionId);
     console.log('Session ID to remove:', sessionId);
@@ -265,12 +265,8 @@ export async function DELETE(request: NextRequest) {
     const currentSessionIdStr = currentSessionId ? currentSessionId.toString() : '';
     const sessionIdToRemoveStr = sessionId ? sessionId.toString() : '';
     
-    if (sessionIdToRemoveStr === currentSessionIdStr) {
-      return NextResponse.json(
-        { message: 'Cannot remove the current session. Please use logout instead.' },
-        { status: 400 }
-      );
-    }
+    // Allow removal of current session (it will be handled by client-side signOut)
+    console.log('Proceeding with session removal for:', sessionIdToRemoveStr);
 
     // Check if the session exists in the user's sessions array
     const sessionExists = user.sessions.some(

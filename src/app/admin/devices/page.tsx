@@ -52,17 +52,17 @@ export default function DevicesPage() {
     try {
       setLoading(true);
       setError(''); // Clear any previous errors
-      
+
       const response = await fetch('/api/admin/devices');
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to fetch sessions');
       }
-      
+
       const data = await response.json();
       console.log('Received sessions data:', data);
-      
+
       if (Array.isArray(data.sessions)) {
         setSessions(data.sessions);
       } else {
@@ -85,52 +85,49 @@ export default function DevicesPage() {
     try {
       setLogoutLoading(sessionId);
       console.log('Logging out session:', sessionId);
-      
+
       // Check if this is the current session
-      const isCurrentSession = sessions.find(s => s._id === sessionId)?.isCurrent;
-      
+      const targetSession = sessions.find(s => s._id === sessionId);
+      const isCurrentSession = targetSession?.isCurrent;
+
+      console.log('Target session:', targetSession);
+      console.log('Is current session:', isCurrentSession);
+
       if (isCurrentSession) {
         // For current session, use signOut to clear client-side session
+        console.log('Logging out current session');
         await signOut({ redirect: false });
         router.push('/auth/login');
-        return; // No need to continue as we're redirecting
+        return;
       }
-      
-      // For other sessions, delete the session from the database
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
+
+      // For other sessions, call the DELETE endpoint
+      console.log('Logging out remote session:', sessionId);
+      const response = await fetch('/api/admin/devices', {
+        method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ sessionId }),
       });
 
-      let responseData;
-      try {
-        responseData = await response.json();
-        console.log('Logout response:', responseData);
-      } catch (e) {
-        console.error('Error parsing response:', e);
-      }
+      const responseData = await response.json();
+      console.log('DELETE response:', responseData);
 
       if (!response.ok) {
         throw new Error(responseData?.message || 'Failed to logout from device');
       }
-      
+
       // Show success message
-      toast.success('Session removed successfully');
-      
+      toast.success('Device logged out successfully');
+
       // Refresh the sessions list
       await fetchSessions();
 
-      setError(''); // Clear any previous errors on success
+      setError('');
     } catch (err) {
       console.error('Error during logout:', err);
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+      toast.error(err instanceof Error ? err.message : 'Failed to logout device');
     } finally {
       setLogoutLoading(null);
     }
@@ -186,50 +183,49 @@ export default function DevicesPage() {
           <CardTitle>Logged In Devices</CardTitle>
         </CardHeader>
         <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Device</TableHead>
-              <TableHead>Browser</TableHead>
-              <TableHead>IP Address</TableHead>
-              <TableHead>Last Accessed</TableHead>
-              <TableHead>First Seen</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sessions.length === 0 ? (
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                  No devices found
-                </TableCell>
+                <TableHead>Device</TableHead>
+                <TableHead>Browser</TableHead>
+                <TableHead>IP Address</TableHead>
+                <TableHead>Last Accessed</TableHead>
+                <TableHead>First Seen</TableHead>
+                <TableHead>Action</TableHead>
               </TableRow>
-            ) : (
-              sessions.map((session) => (
-                <TableRow key={session._id} className={session.isCurrent ? 'bg-muted/50' : ''}>
-                  <TableCell>
-                    {getDeviceInfo(session.userAgent)}
-                    {session.isCurrent && (
-                      <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
-                        Current
-                      </Badge>
-                    )}
+            </TableHeader>
+            <TableBody>
+              {sessions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                    No devices found
                   </TableCell>
-                  <TableCell>{getBrowserInfo(session.userAgent)}</TableCell>
-                  <TableCell>{session.ipAddress}</TableCell>
-                  <TableCell>{formatDate(session.lastAccessedAt)}</TableCell>
-                  <TableCell>{formatDate(session.createdAt)}</TableCell>
-                  <TableCell>
-                    {!session.isCurrent ? (
-                      <Button 
-                        variant="destructive" 
+                </TableRow>
+              ) : (
+                sessions.map((session) => (
+                  <TableRow key={session._id} className={session.isCurrent ? 'bg-muted/50' : ''}>
+                    <TableCell>
+                      {getDeviceInfo(session.userAgent)}
+                      {session.isCurrent && (
+                        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
+                          Current
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>{getBrowserInfo(session.userAgent)}</TableCell>
+                    <TableCell>{session.ipAddress}</TableCell>
+                    <TableCell>{formatDate(session.lastAccessedAt)}</TableCell>
+                    <TableCell>{formatDate(session.createdAt)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="destructive"
                         size="sm"
                         onClick={() => handleLogout(session._id)}
                         disabled={logoutLoading === session._id || loading}
@@ -240,22 +236,17 @@ export default function DevicesPage() {
                             Logging out
                           </>
                         ) : (
-                          'Log Out'
+                          session.isCurrent ? 'Log Out (Current)' : 'Log Out'
                         )}
                       </Button>
-                    ) : (
-                      <Badge variant="outline" className="bg-blue-100 text-blue-800">
-                        Current Session
-                      </Badge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </>
   );
 }
