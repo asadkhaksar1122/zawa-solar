@@ -13,7 +13,7 @@ import VpnWarning from '@/components/security/VpnWarning';
 
 // Dynamic metadata will be handled by the SettingsProvider
 export const metadata: Metadata = {
-  title: 'Zawa Soler Energy',
+  title: 'Zawa Solar Energy',
   description: 'Your gateway to solar energy solutions.',
 };
 

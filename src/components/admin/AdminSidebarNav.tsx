@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Box, Building, Settings, Phone, Users, UserCheck, Mail } from 'lucide-react'; // Added Mail icon
+import { LayoutDashboard, Box, Building, Settings, Phone, Users, UserCheck, Mail, Smartphone } from 'lucide-react'; // Added Mail icon
 
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/admin/subscriptions', label: 'Subscriptions', icon: Mail }, // New subscription item
   { href: '/admin/contact-settings', label: 'Contact Settings', icon: Phone },
   { href: '/admin/users', label: 'Manage Users', icon: Users },
+  { href: '/admin/devices', label: 'Devices', icon: Smartphone },
   { href: '/admin/setting', label: 'Website Settings', icon: Settings },
 ];
 

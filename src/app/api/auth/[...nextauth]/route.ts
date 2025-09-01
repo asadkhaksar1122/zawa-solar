@@ -3,6 +3,7 @@ import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcrypt';
 import { dbConnect } from '@/lib/mongodb';
+import SessionModel from '@/lib/models/session';
 import UserModel from '@/lib/models/user';
 
 export const authOptions: NextAuthOptions = {
@@ -58,11 +59,22 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
+          const session = new SessionModel({
+            userId: user._id,
+            ipAddress: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress,
+            userAgent: req.headers?.['user-agent'],
+          });
+          await session.save();
+
+          user.sessions.push(session._id);
+          await user.save();
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             role: user.role,
+            sessionId: session._id.toString(),
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -85,6 +97,12 @@ export const authOptions: NextAuthOptions = {
         token.email = (user as any).email;
         token.name = (user as any).name;
         token.role = (user as any).role;
+        
+        // Ensure sessionId is set
+        if ((user as any).sessionId) {
+          token.sessionId = (user as any).sessionId;
+          console.log('Setting sessionId in JWT:', (user as any).sessionId);
+        }
       }
 
       // Handle session updates (when update() is called)
@@ -108,6 +126,13 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).email = token.email;
         (session.user as any).name = token.name;
         (session.user as any).role = token.role;
+        
+        if (token.sessionId) {
+          (session.user as any).sessionId = token.sessionId;
+          console.log('Setting sessionId in session:', token.sessionId);
+        } else {
+          console.log('No sessionId in token');
+        }
       }
       return session;
     },

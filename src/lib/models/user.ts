@@ -14,6 +14,7 @@ export interface IUser extends Document {
     twoFactorEnabled?: boolean;
     twoFactorOtp?: string;
     twoFactorOtpExpires?: Date;
+    sessions: mongoose.Schema.Types.ObjectId[];
 }
 
 // Create the schema
@@ -71,6 +72,10 @@ const UserSchema: Schema<IUser> = new Schema<IUser>({
         type: Date,
         required: false,
     },
+    sessions: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Session',
+    }],
 }, {
     timestamps: true, // optional: adds createdAt and updatedAt
 });
