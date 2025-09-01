@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast, Toaster } from 'sonner';
 
 interface UserSession {
   _id: string;
@@ -106,37 +107,25 @@ export default function DevicesPage() {
         throw new Error(responseData?.message || 'Failed to logout from device');
       }
       
-      // Create a hidden iframe to trigger the remote logout
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = `/api/auth/remote-logout?sessionId=${sessionId}`;
+      // Then call our custom logout API to ensure the session is removed
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionId }),
+        });
+      } catch (error) {
+        console.error('Error calling logout API:', error);
+        // Continue even if this fails as we've already removed the session from the database
+      }
       
-      // Listen for the logout-complete message from the iframe
-      const messageListener = (event: MessageEvent) => {
-        if (event.data === 'logout-complete') {
-          // Remove the iframe and event listener
-          document.body.removeChild(iframe);
-          window.removeEventListener('message', messageListener);
-          
-          // Refresh the sessions list
-          fetchSessions();
-        }
-      };
+      // Show success message
+      toast.success('Session removed successfully');
       
-      // Add the event listener
-      window.addEventListener('message', messageListener);
-      
-      // Add the iframe to the document
-      document.body.appendChild(iframe);
-      
-      // Set a timeout to remove the iframe and refresh sessions if no message is received
-      setTimeout(() => {
-        if (document.body.contains(iframe)) {
-          document.body.removeChild(iframe);
-          window.removeEventListener('message', messageListener);
-          fetchSessions();
-        }
-      }, 5000);
+      // Refresh the sessions list
+      await fetchSessions();
 
       setError(''); // Clear any previous errors on success
     } catch (err) {
@@ -194,11 +183,13 @@ export default function DevicesPage() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Logged In Devices</CardTitle>
-      </CardHeader>
-      <CardContent>
+    <>
+      <Toaster richColors position="top-center" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Logged In Devices</CardTitle>
+        </CardHeader>
+        <CardContent>
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -265,5 +256,6 @@ export default function DevicesPage() {
         </Table>
       </CardContent>
     </Card>
+    </>
   );
 }
