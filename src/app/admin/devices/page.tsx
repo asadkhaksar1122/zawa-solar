@@ -89,9 +89,16 @@ export default function DevicesPage() {
       // Check if this is the current session
       const isCurrentSession = sessions.find(s => s._id === sessionId)?.isCurrent;
       
-      // First, delete the session from the database
-      const response = await fetch('/api/admin/devices', {
-        method: 'DELETE',
+      if (isCurrentSession) {
+        // For current session, use signOut to clear client-side session
+        await signOut({ redirect: false });
+        router.push('/auth/login');
+        return; // No need to continue as we're redirecting
+      }
+      
+      // For other sessions, delete the session from the database
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -110,34 +117,10 @@ export default function DevicesPage() {
         throw new Error(responseData?.message || 'Failed to logout from device');
       }
       
-      // Then call our custom logout API to ensure the session is removed from the database
-      try {
-        const logoutResponse = await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ sessionId }),
-        });
-        
-        if (!logoutResponse.ok) {
-          console.error('Error from logout API:', await logoutResponse.text());
-        }
-      } catch (error) {
-        console.error('Error calling logout API:', error);
-      }
-      
       // Show success message
       toast.success('Session removed successfully');
       
-      // If this is the current session, use signOut to clear client-side session
-      if (isCurrentSession) {
-        await signOut({ redirect: false });
-        router.push('/auth/login');
-        return; // No need to refresh sessions as we're redirecting
-      }
-      
-      // Refresh the sessions list for other sessions
+      // Refresh the sessions list
       await fetchSessions();
 
       setError(''); // Clear any previous errors on success
@@ -244,21 +227,27 @@ export default function DevicesPage() {
                   <TableCell>{formatDate(session.lastAccessedAt)}</TableCell>
                   <TableCell>{formatDate(session.createdAt)}</TableCell>
                   <TableCell>
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={() => handleLogout(session._id)}
-                      disabled={logoutLoading === session._id || loading}
-                    >
-                      {logoutLoading === session._id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Logging out
-                        </>
-                      ) : (
-                        'Log Out'
-                      )}
-                    </Button>
+                    {!session.isCurrent ? (
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleLogout(session._id)}
+                        disabled={logoutLoading === session._id || loading}
+                      >
+                        {logoutLoading === session._id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Logging out
+                          </>
+                        ) : (
+                          'Log Out'
+                        )}
+                      </Button>
+                    ) : (
+                      <Badge variant="outline" className="bg-blue-100 text-blue-800">
+                        Current Session
+                      </Badge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
