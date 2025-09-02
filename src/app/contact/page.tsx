@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { motion, useScroll, useTransform, useSpring, useMotionValue, useAnimationFrame } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
 import { UserHeader } from '@/components/user/Header';
 import { UserFooter } from '@/components/user/Footer';
@@ -55,12 +55,11 @@ export default function ContactPage() {
   const contactSettings = contactSettingsData?.[0];
   const [copied, setCopied] = React.useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = React.useState(true);
-  const { scrollY } = useScroll();
 
-  // Parallax effects
-  const y1 = useTransform(scrollY, [0, 300], [0, 50]);
-  const y2 = useTransform(scrollY, [0, 300], [0, -50]);
-  const opacity = useTransform(scrollY, [0, 300], [1, 0.3]);
+  // Previously scroll-driven parallax values — now static to remove section scroll effects
+  const y1 = 0;
+  const y2 = 0;
+  const heroOpacity = 1;
 
   const handleCopy = async (value: string) => {
     try {
@@ -75,8 +74,6 @@ export default function ContactPage() {
       toast.error('Failed to copy');
     }
   };
-
-
 
   // Enhanced animation variants
   const container = {
@@ -228,13 +225,13 @@ export default function ContactPage() {
 
       <main className="flex-grow py-12 md:py-20">
         <div className="container mx-auto px-4">
-          {/* Enhanced Hero with parallax and stunning effects */}
+          {/* Hero (scroll-independent now) */}
           <motion.section
             className="text-center mb-16 md:mb-20 relative"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
-            style={{ opacity }}
+            style={{ opacity: heroOpacity }}
           >
             {/* Hero background glow */}
             <div className="absolute inset-0 -z-10">
@@ -340,7 +337,7 @@ export default function ContactPage() {
             </motion.div>
           </motion.section>
 
-          {/* Contact methods with enhanced animations */}
+          {/* Contact methods */}
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-12 md:mb-16"
             variants={container}
@@ -665,7 +662,7 @@ export default function ContactPage() {
             )}
           </motion.div>
 
-          {/* Enhanced Map section with beautiful styling and marker */}
+          {/* Map section */}
           <motion.section
             className="text-center relative"
             initial={{ opacity: 0, y: 40 }}
@@ -722,7 +719,7 @@ export default function ContactPage() {
               {/* Enhanced overlay effects */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-10 pointer-events-none" />
 
-              {/* Decorative corner elements */}
+              {/* Decorative corners */}
               <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-white/50 rounded-tl-lg z-20 pointer-events-none" />
               <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-white/50 rounded-tr-lg z-20 pointer-events-none" />
               <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-white/50 rounded-bl-lg z-20 pointer-events-none" />
@@ -751,8 +748,6 @@ export default function ContactPage() {
                     📍
                   </div>
                   <div className="absolute top-full left-1/2 -translate-x-1/2 w-1 h-4 bg-gradient-to-b from-red-600 to-transparent" />
-
-                  {/* Pulsing ring effect */}
                   <motion.div
                     className="absolute inset-0 rounded-full border-2 border-red-500/50"
                     animate={{
@@ -770,7 +765,6 @@ export default function ContactPage() {
 
               {contactSettings?.officeAddress ? (
                 <>
-                  {/* Simple map display with address search */}
                   <div className="w-full h-full relative bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-zinc-800 dark:to-zinc-900">
                     {/* Loading indicator */}
                     {!mapLoaded && (
@@ -786,7 +780,7 @@ export default function ContactPage() {
                       </div>
                     )}
 
-                    {/* Simple embedded map that works reliably */}
+                    {/* Simple embedded map */}
                     <iframe
                       src={`https://maps.google.com/maps?q=${encodeURIComponent(contactSettings.officeAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                       width="100%"
