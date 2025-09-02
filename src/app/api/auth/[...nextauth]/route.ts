@@ -15,17 +15,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials.password) return null;
 
         try {
           await dbConnect();
           const user = await UserModel.findOne({ email: credentials.email });
-
-          if (!user || !user.isEmailVerified) {
-            return null;
-          }
+          if (!user || !user.isEmailVerified) return null;
 
           // Handle 2FA verified login
           if (credentials.password === 'verified' && user.role === 'admin') {
@@ -39,11 +34,9 @@ export const authOptions: NextAuthOptions = {
 
           // Regular password verification
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-          if (!isPasswordValid) {
-            return null;
-          }
+          if (!isPasswordValid) return null;
 
-          // Check if admin needs 2FA based on website settings
+          // Admin 2FA check (if enabled)
           if (user.role === 'admin') {
             try {
               const { WebsiteSettings } = require('@/lib/models/websiteSettings');
@@ -59,10 +52,11 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
+          // Create our own "device session" record (this is different from NextAuth's JWT cookie)
           const session = new SessionModel({
             userId: user._id,
-            ipAddress: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress,
-            userAgent: req.headers?.['user-agent'],
+            ipAddress: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
+            userAgent: req.headers?.['user-agent'] || 'unknown',
           });
           await session.save();
 
@@ -74,13 +68,11 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
-            sessionId: session._id.toString(),
+            sessionId: session._id.toString(), // we embed this into the JWT
           };
         } catch (error) {
           console.error('Auth error:', error);
-          if (error instanceof Error && error.message === '2FA_REQUIRED') {
-            throw error;
-          }
+          if (error instanceof Error && error.message === '2FA_REQUIRED') throw error;
           return null;
         }
       },
@@ -97,36 +89,53 @@ export const authOptions: NextAuthOptions = {
         token.email = (user as any).email;
         token.name = (user as any).name;
         token.role = (user as any).role;
-        
-        // Ensure sessionId is set
+
         if ((user as any).sessionId) {
           token.sessionId = (user as any).sessionId;
-          console.log('Setting sessionId in JWT:', (user as any).sessionId);
+          console.log('Setting sessionId in JWT:', token.sessionId);
         }
       }
 
-      // Handle session updates (when update() is called)
+      // Optional: handle session updates
       if (trigger === 'update' && session) {
-        if (session.name) {
-          token.name = session.name;
+        if (session.name) token.name = session.name;
+        if (session.email) token.email = session.email;
+        if (session.role) token.role = session.role;
+      }
+
+      // On every request, verify that the device session still exists.
+      // Throttle the DB check a bit to avoid hammering the DB.
+      const now = Date.now();
+      const shouldCheck =
+        !token.lastSessionCheck || now - (token.lastSessionCheck as number) > 15_000; // 15s
+
+      if (shouldCheck && token.sessionId) {
+        try {
+          await dbConnect();
+          const exists = await SessionModel.exists({ _id: token.sessionId });
+          token.sessionRevoked = !exists;
+        } catch (e) {
+          // Fail closed: if we can't check, treat as revoked
+          token.sessionRevoked = true;
+          console.error('Error checking session validity:', e);
         }
-        if (session.email) {
-          token.email = session.email;
-        }
-        if (session.role) {
-          token.role = session.role;
-        }
+        token.lastSessionCheck = now;
       }
 
       return token;
     },
     async session({ session, token }) {
+      // If this device session was revoked (deleted from DB), kill the NextAuth session
+      if (token.sessionRevoked) {
+        return null;
+      }
+
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).email = token.email;
         (session.user as any).name = token.name;
         (session.user as any).role = token.role;
-        
+
         if (token.sessionId) {
           (session.user as any).sessionId = token.sessionId;
           console.log('Setting sessionId in session:', token.sessionId);
@@ -134,6 +143,7 @@ export const authOptions: NextAuthOptions = {
           console.log('No sessionId in token');
         }
       }
+
       return session;
     },
   },
@@ -144,5 +154,4 @@ export const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };

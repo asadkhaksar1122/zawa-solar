@@ -10,6 +10,7 @@ import { SecurityProvider } from '@/contexts/SecurityContext';
 import { MaintenanceMode } from '@/components/system/MaintenanceMode';
 import { SessionTimeoutWarning } from '@/components/security/SessionTimeoutWarning';
 import VpnWarning from '@/components/security/VpnWarning';
+import { Providers } from './Providers';
 
 // Dynamic metadata will be handled by the SettingsProvider
 export const metadata: Metadata = {
@@ -41,7 +42,9 @@ export default function RootLayout({
               <SecurityProvider>
                 <Toaster richColors position="top-center" closeButton />
                 <MaintenanceMode>
-                  {children}
+                  <Providers>
+                    {children}
+                  </Providers>
                   <Chatbot></Chatbot>
                   <SessionTimeoutWarning />
                   <VpnWarning />
