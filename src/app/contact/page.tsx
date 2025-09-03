@@ -116,7 +116,7 @@ export default function ContactPage() {
       <div className="flex flex-col min-h-screen">
         <UserHeader />
         <main className="flex-grow py-12 md:py-20 bg-gradient-to-br from-background via-muted/10 to-background">
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 ">
             <Skeleton className="h-12 w-1/2 mx-auto mb-4" />
             <Skeleton className="h-6 w-3/4 mx-auto mb-12" />
             <div className="grid md:grid-cols-3 gap-8 mb-12">
@@ -223,18 +223,18 @@ export default function ContactPage() {
 
       <Toaster richColors position="top-center" closeButton />
 
-      <main className="flex-grow py-12 md:py-20">
-        <div className="container mx-auto px-4">
+      <main className="flex-grow py-12 md:py-20 ">
+        <div className="container mx-auto px-4 ">
           {/* Hero (scroll-independent now) */}
           <motion.section
-            className="text-center mb-16 md:mb-20 relative"
+            className="text-center mb-16 md:mb-20 relative overflow-hidden"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: [0.43, 0.13, 0.23, 0.96] }}
             style={{ opacity: heroOpacity }}
           >
             {/* Hero background glow */}
-            <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 -z-10 ">
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-primary/20 via-primary/15 to-primary/10 rounded-full blur-3xl"
                 animate={{
@@ -671,7 +671,7 @@ export default function ContactPage() {
             viewport={{ once: true, amount: 0.2 }}
           >
             {/* Section background glow */}
-            <div className="absolute inset-0 -z-10">
+            <div className="absolute inset-0 -z-10 overflow-hidden">
               <motion.div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-teal-500/10 rounded-full blur-3xl"
                 animate={{
@@ -687,7 +687,7 @@ export default function ContactPage() {
             </div>
 
             <motion.h2
-              className="font-headline text-4xl md:text-5xl font-bold mb-6"
+              className="font-headline text-4xl md:text-5xl font-bold mb-6 "
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
