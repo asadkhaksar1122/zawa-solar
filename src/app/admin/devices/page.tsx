@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2, Monitor, Smartphone, Tablet, Globe, Clock, Calendar, LogOut } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast, Toaster } from 'sonner';
 
@@ -51,7 +51,7 @@ export default function DevicesPage() {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      setError(''); // Clear any previous errors
+      setError('');
 
       const response = await fetch('/api/admin/devices');
 
@@ -86,7 +86,6 @@ export default function DevicesPage() {
       setLogoutLoading(sessionId);
       console.log('Logging out session:', sessionId);
 
-      // Check if this is the current session
       const targetSession = sessions.find(s => s._id === sessionId);
       const isCurrentSession = targetSession?.isCurrent;
 
@@ -94,14 +93,12 @@ export default function DevicesPage() {
       console.log('Is current session:', isCurrentSession);
 
       if (isCurrentSession) {
-        // For current session, use signOut to clear client-side session
         console.log('Logging out current session');
         await signOut({ redirect: false });
         router.push('/auth/login');
         return;
       }
 
-      // For other sessions, call the DELETE endpoint
       console.log('Logging out remote session:', sessionId);
       const response = await fetch('/api/admin/devices', {
         method: 'DELETE',
@@ -118,12 +115,8 @@ export default function DevicesPage() {
         throw new Error(responseData?.message || 'Failed to logout from device');
       }
 
-      // Show success message
       toast.success('Device logged out successfully');
-
-      // Refresh the sessions list
       await fetchSessions();
-
       setError('');
     } catch (err) {
       console.error('Error during logout:', err);
@@ -141,8 +134,23 @@ export default function DevicesPage() {
     }
   };
 
+  const formatDateShort = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'MMM dd');
+    } catch (e) {
+      return 'Invalid';
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'HH:mm');
+    } catch (e) {
+      return '--:--';
+    }
+  };
+
   const getBrowserInfo = (userAgent: string) => {
-    // Simple browser detection
     if (userAgent.includes('Firefox')) return 'Firefox';
     if (userAgent.includes('Chrome')) return 'Chrome';
     if (userAgent.includes('Safari')) return 'Safari';
@@ -152,7 +160,6 @@ export default function DevicesPage() {
   };
 
   const getDeviceInfo = (userAgent: string) => {
-    // Simple device detection
     if (userAgent.includes('iPhone')) return 'iPhone';
     if (userAgent.includes('iPad')) return 'iPad';
     if (userAgent.includes('Android')) return 'Android';
@@ -162,14 +169,22 @@ export default function DevicesPage() {
     return 'Unknown Device';
   };
 
+  const getDeviceIcon = (userAgent: string) => {
+    if (userAgent.includes('iPhone') || userAgent.includes('Android'))
+      return <Smartphone className="h-4 w-4" />;
+    if (userAgent.includes('iPad'))
+      return <Tablet className="h-4 w-4" />;
+    return <Monitor className="h-4 w-4" />;
+  };
+
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Logged In Devices</CardTitle>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl">Logged In Devices</CardTitle>
         </CardHeader>
         <CardContent className="flex justify-center py-10">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-primary" />
         </CardContent>
       </Card>
     );
@@ -178,73 +193,162 @@ export default function DevicesPage() {
   return (
     <>
       <Toaster richColors position="top-center" />
-      <Card>
-        <CardHeader>
-          <CardTitle>Logged In Devices</CardTitle>
+      <Card className="w-full">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg sm:text-xl md:text-2xl">Logged In Devices</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-2 sm:px-4 md:px-6">
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="text-xs sm:text-sm">{error}</AlertDescription>
             </Alert>
           )}
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Device</TableHead>
-                <TableHead>Browser</TableHead>
-                <TableHead>IP Address</TableHead>
-                <TableHead>Last Accessed</TableHead>
-                <TableHead>First Seen</TableHead>
-                <TableHead>Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sessions.length === 0 ? (
+          {/* Desktop Table View - Hidden on mobile */}
+          <div className="hidden lg:block overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
-                    No devices found
-                  </TableCell>
+                  <TableHead>Device</TableHead>
+                  <TableHead>Browser</TableHead>
+                  <TableHead>IP Address</TableHead>
+                  <TableHead>Last Accessed</TableHead>
+                  <TableHead>First Seen</TableHead>
+                  <TableHead>Action</TableHead>
                 </TableRow>
-              ) : (
-                sessions.map((session) => (
-                  <TableRow key={session._id} className={session.isCurrent ? 'bg-muted/50' : ''}>
-                    <TableCell>
-                      {getDeviceInfo(session.userAgent)}
+              </TableHeader>
+              <TableBody>
+                {sessions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-6">
+                      No devices found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  sessions.map((session) => (
+                    <TableRow key={session._id} className={session.isCurrent ? 'bg-muted/50' : ''}>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getDeviceIcon(session.userAgent)}
+                          <span>{getDeviceInfo(session.userAgent)}</span>
+                          {session.isCurrent && (
+                            <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100">
+                              Current
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getBrowserInfo(session.userAgent)}</TableCell>
+                      <TableCell>{session.ipAddress}</TableCell>
+                      <TableCell>{formatDate(session.lastAccessedAt)}</TableCell>
+                      <TableCell>{formatDate(session.createdAt)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleLogout(session._id)}
+                          disabled={logoutLoading === session._id || loading}
+                        >
+                          {logoutLoading === session._id ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Logging out
+                            </>
+                          ) : (
+                            session.isCurrent ? 'Log Out (Current)' : 'Log Out'
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="lg:hidden space-y-3">
+            {sessions.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8 text-sm">
+                No devices found
+              </div>
+            ) : (
+              sessions.map((session) => (
+                <Card key={session._id} className={`${session.isCurrent ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : ''}`}>
+                  <CardContent className="p-3 sm:p-4">
+                    {/* Device Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {getDeviceIcon(session.userAgent)}
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-sm sm:text-base truncate">
+                            {getDeviceInfo(session.userAgent)}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {getBrowserInfo(session.userAgent)}
+                          </div>
+                        </div>
+                      </div>
                       {session.isCurrent && (
-                        <Badge variant="outline" className="ml-2 bg-green-100 text-green-800 hover:bg-green-100">
+                        <Badge variant="outline" className="bg-green-100 text-green-800 hover:bg-green-100 text-xs shrink-0">
                           Current
                         </Badge>
                       )}
-                    </TableCell>
-                    <TableCell>{getBrowserInfo(session.userAgent)}</TableCell>
-                    <TableCell>{session.ipAddress}</TableCell>
-                    <TableCell>{formatDate(session.lastAccessedAt)}</TableCell>
-                    <TableCell>{formatDate(session.createdAt)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleLogout(session._id)}
-                        disabled={logoutLoading === session._id || loading}
-                      >
-                        {logoutLoading === session._id ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Logging out
-                          </>
-                        ) : (
-                          session.isCurrent ? 'Log Out (Current)' : 'Log Out'
-                        )}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                    </div>
+
+                    {/* Details Grid */}
+                    <div className="space-y-2 mb-3">
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Globe className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">IP:</span>
+                        <span className="font-mono truncate">{session.ipAddress}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">Last active:</span>
+                        <span className="truncate">
+                          <span className="sm:hidden">{formatDateShort(session.lastAccessedAt)} {formatTime(session.lastAccessedAt)}</span>
+                          <span className="hidden sm:inline">{formatDate(session.lastAccessedAt)}</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground shrink-0" />
+                        <span className="text-muted-foreground">First seen:</span>
+                        <span className="truncate">
+                          <span className="sm:hidden">{formatDateShort(session.createdAt)} {formatTime(session.createdAt)}</span>
+                          <span className="hidden sm:inline">{formatDate(session.createdAt)}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="w-full text-xs sm:text-sm"
+                      onClick={() => handleLogout(session._id)}
+                      disabled={logoutLoading === session._id || loading}
+                    >
+                      {logoutLoading === session._id ? (
+                        <>
+                          <Loader2 className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                          Logging out...
+                        </>
+                      ) : (
+                        <>
+                          <LogOut className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4" />
+                          {session.isCurrent ? 'Log Out (Current)' : 'Log Out'}
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </>
