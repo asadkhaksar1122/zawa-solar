@@ -55,6 +55,8 @@ export default function DevicesPage() {
 
       const response = await fetch('/api/admin/devices');
 
+
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || 'Failed to fetch sessions');

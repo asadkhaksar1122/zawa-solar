@@ -28,14 +28,14 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Server, 
-  Users, 
-  Mail, 
-  HardDrive, 
-  AlertTriangle, 
-  Settings, 
-  Plus, 
+import {
+  Server,
+  Users,
+  Mail,
+  HardDrive,
+  AlertTriangle,
+  Settings,
+  Plus,
   X,
   FileText,
   Shield
@@ -86,8 +86,8 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
     defaultValues: {
       maintenanceMode: settings?.system?.maintenanceMode || false,
       maintenanceMessage: settings?.system?.maintenanceMessage || 'We are currently performing maintenance. Please check back soon.',
-      enableRegistration: settings?.system?.enableRegistration || true,
-      enableEmailVerification: settings?.system?.enableEmailVerification || true,
+      enableRegistration: settings?.system?.enableRegistration !== undefined ? settings.system.enableRegistration : true,
+      enableEmailVerification: settings?.system?.enableEmailVerification !== undefined ? settings.system.enableEmailVerification : true,
       defaultUserRole: settings?.system?.defaultUserRole || 'user',
       maxFileUploadSize: settings?.system?.maxFileUploadSize || 10,
       allowedFileTypes: settings?.system?.allowedFileTypes || ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
@@ -100,10 +100,10 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
     if (settings?.system) {
       const system = settings.system;
       form.reset({
-        maintenanceMode: system.maintenanceMode || false,
+        maintenanceMode: system.maintenanceMode === true,
         maintenanceMessage: system.maintenanceMessage || 'We are currently performing maintenance. Please check back soon.',
-        enableRegistration: system.enableRegistration || true,
-        enableEmailVerification: system.enableEmailVerification || true,
+        enableRegistration: system.enableRegistration !== undefined ? system.enableRegistration : true,
+        enableEmailVerification: system.enableEmailVerification !== undefined ? system.enableEmailVerification : true,
         defaultUserRole: system.defaultUserRole || 'user',
         maxFileUploadSize: system.maxFileUploadSize || 10,
         allowedFileTypes: system.allowedFileTypes || ['jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx'],
@@ -179,8 +179,11 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value || false}
-                        onCheckedChange={field.onChange}
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          form.trigger('maintenanceMode');
+                        }}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -188,7 +191,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                 )}
               />
 
-              {form.watch('maintenanceMode') && (
+              {form.watch('maintenanceMode') === true && (
                 <FormField
                   control={form.control}
                   name="maintenanceMessage"
@@ -196,7 +199,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                     <FormItem>
                       <FormLabel>Maintenance Message</FormLabel>
                       <FormControl>
-                        <Textarea 
+                        <Textarea
                           placeholder="We are currently performing maintenance..."
                           className="min-h-[80px]"
                           {...field}
@@ -212,7 +215,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                 />
               )}
 
-              {form.watch('maintenanceMode') && (
+              {form.watch('maintenanceMode') === true && (
                 <Alert variant="destructive">
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>
@@ -248,8 +251,11 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value || false}
-                        onCheckedChange={field.onChange}
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          form.trigger('enableRegistration');
+                        }}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -270,8 +276,11 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value || false}
-                        onCheckedChange={field.onChange}
+                        checked={field.value === true}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          form.trigger('enableEmailVerification');
+                        }}
                         disabled={isLoading}
                       />
                     </FormControl>
@@ -285,7 +294,11 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Default User Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={isLoading}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select default role" />
@@ -326,12 +339,17 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                 <FormItem>
                   <FormLabel>Maximum File Size (MB)</FormLabel>
                   <FormControl>
-                    <Input 
+                    <Input
                       type="number"
                       min="1"
                       max="100"
-                      {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 10)}
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (!isNaN(value)) {
+                          field.onChange(value);
+                        }
+                      }}
                       disabled={isLoading}
                     />
                   </FormControl>
@@ -370,7 +388,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                   <FormDescription>
                     Select which file types users can upload
                   </FormDescription>
-                  
+
                   {/* Common file types */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
                     {commonFileTypes.map((type) => (
@@ -394,7 +412,12 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                       placeholder="Enter file extension (e.g., mp4)"
                       value={newFileType}
                       onChange={(e) => setNewFileType(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFileType())}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addFileType();
+                        }
+                      }}
                       disabled={isLoading}
                     />
                     <Button
@@ -418,7 +441,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-auto p-0 hover:bg-transparent"
+                            className="h-auto p-0 hover:bg-transparent ml-1"
                             onClick={() => removeFileType(fileType)}
                             disabled={isLoading}
                           >
@@ -428,7 +451,7 @@ export function SystemSettingsForm({ settings, onChange, isLoading }: SystemSett
                       ))}
                     </div>
                   )}
-                  
+
                   <FormMessage />
                 </FormItem>
               )}

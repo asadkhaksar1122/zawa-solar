@@ -1,23 +1,23 @@
 'use client';
 
 import { CardDescription, CardTitle } from '@/components/ui/card';
-import { SiteInformationForm } from '@/components/admin/settings/SiteInformationForm';
+import { SystemSettingsForm } from '@/components/admin/settings/SystemSettingsForm';
 import { useSettingsForm } from '@/contexts/SettingsFormContext';
 
-export default function SiteSettingsPage() {
+export default function SystemSettingsPage() {
   const { settings, handleFormChange, isLoading } = useSettingsForm();
 
   return (
     <div className="space-y-6">
       <div>
-        <CardTitle className="text-lg mb-2">Site Information</CardTitle>
+        <CardTitle className="text-lg mb-2">System Settings</CardTitle>
         <CardDescription>
-          Configure basic information about your website and organization.
+          Manage system-wide configurations and maintenance options.
         </CardDescription>
       </div>
-      <SiteInformationForm
+      <SystemSettingsForm
         settings={settings}
-        onChange={(data) => handleFormChange('site', data)}
+        onChange={(data) => handleFormChange('system', data)}
         isLoading={isLoading}
       />
     </div>

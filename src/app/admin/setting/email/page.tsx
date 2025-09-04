@@ -1,23 +1,23 @@
 'use client';
 
 import { CardDescription, CardTitle } from '@/components/ui/card';
-import { SiteInformationForm } from '@/components/admin/settings/SiteInformationForm';
+import { EmailConfigurationForm } from '@/components/admin/settings/EmailConfigurationForm';
 import { useSettingsForm } from '@/contexts/SettingsFormContext';
 
-export default function SiteSettingsPage() {
+export default function EmailSettingsPage() {
   const { settings, handleFormChange, isLoading } = useSettingsForm();
 
   return (
     <div className="space-y-6">
       <div>
-        <CardTitle className="text-lg mb-2">Site Information</CardTitle>
+        <CardTitle className="text-lg mb-2">Email Configuration</CardTitle>
         <CardDescription>
-          Configure basic information about your website and organization.
+          Set up SMTP settings for sending emails from your application.
         </CardDescription>
       </div>
-      <SiteInformationForm
+      <EmailConfigurationForm
         settings={settings}
-        onChange={(data) => handleFormChange('site', data)}
+        onChange={(data) => handleFormChange('emailConfig', data)}
         isLoading={isLoading}
       />
     </div>

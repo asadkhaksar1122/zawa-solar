@@ -1,23 +1,23 @@
 'use client';
 
 import { CardDescription, CardTitle } from '@/components/ui/card';
-import { SiteInformationForm } from '@/components/admin/settings/SiteInformationForm';
+import { SecuritySettingsForm } from '@/components/admin/settings/SecuritySettingsForm';
 import { useSettingsForm } from '@/contexts/SettingsFormContext';
 
-export default function SiteSettingsPage() {
+export default function SecuritySettingsPage() {
   const { settings, handleFormChange, isLoading } = useSettingsForm();
 
   return (
     <div className="space-y-6">
       <div>
-        <CardTitle className="text-lg mb-2">Site Information</CardTitle>
+        <CardTitle className="text-lg mb-2">Security Settings</CardTitle>
         <CardDescription>
-          Configure basic information about your website and organization.
+          Configure security options and access controls.
         </CardDescription>
       </div>
-      <SiteInformationForm
+      <SecuritySettingsForm
         settings={settings}
-        onChange={(data) => handleFormChange('site', data)}
+        onChange={(data) => handleFormChange('security', data)}
         isLoading={isLoading}
       />
     </div>
