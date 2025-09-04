@@ -152,8 +152,8 @@ export function UserHeader() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-10 w-10 rounded-full p-0">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={session.user.image || undefined} alt={session.user.name || ''} />
-                    <AvatarFallback>{session.user.name?.charAt(0).toUpperCase() || <UserCircle />}</AvatarFallback>
+                    <AvatarImage src={session?.user?.image || undefined} alt={session?.user?.name || ''} />
+                    <AvatarFallback>{session?.user?.name?.charAt(0).toUpperCase() || <UserCircle />}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
@@ -161,13 +161,13 @@ export function UserHeader() {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium">{session.user.name}</p>
+                      <p className="text-sm font-medium">{session?.user?.name}</p>
                       <Button variant="ghost" size="icon" className="h-6 w-6 p-0"
                         onClick={() => setIsChangeNameDialogOpen(true)}>
                         <Pen className="h-3 w-3" />
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                    <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -230,8 +230,8 @@ export function UserHeader() {
                     <div className="px-3 py-2">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="font-medium">{session.user.name}</p>
-                          <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                          <p className="font-medium">{session?.user?.name}</p>
+                          <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
                         </div>
                         <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"
                           onClick={() => setIsChangeNameDialogOpen(true)}>

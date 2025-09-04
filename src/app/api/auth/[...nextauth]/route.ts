@@ -1,4 +1,3 @@
-// app/api/auth/[...nextauth]/route.ts
 import NextAuth, { type NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcrypt';
@@ -53,23 +52,28 @@ export const authOptions: NextAuthOptions = {
           }
 
           // Get IP address and user agent from request
-          const ipAddress = req.headers?.['x-forwarded-for'] || 
-                           req.headers?.['x-real-ip'] || 
-                           req.connection?.remoteAddress || 
-                           req.socket?.remoteAddress || 
-                           'unknown';
+          const forwarded = req.headers?.['x-forwarded-for'];
+          const ipAddress = Array.isArray(forwarded)
+            ? forwarded[0]
+            : typeof forwarded === 'string'
+              ? forwarded.split(',')[0]!.trim()
+              : req.headers?.['x-real-ip'] ||
+              req.connection?.remoteAddress ||
+              req.socket?.remoteAddress ||
+              'unknown';
+
           const userAgent = req.headers?.['user-agent'] || 'unknown';
 
-          // Create our own "device session" record (this is different from NextAuth's JWT cookie)
+          // Create device session
           const session = new SessionModel({
             userId: user._id,
-            ipAddress: Array.isArray(ipAddress) ? ipAddress[0] : ipAddress,
+            ipAddress,
             userAgent,
           });
           await session.save();
 
           // Add session to user's sessions array if not already present
-          if (!user.sessions.includes(session._id)) {
+          if (!user.sessions.map((s: any) => s.toString()).includes(session._id.toString())) {
             user.sessions.push(session._id);
             await user.save();
           }
@@ -79,7 +83,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
-            sessionId: session._id.toString(), // we embed this into the JWT
+            sessionId: session._id.toString(),
           };
         } catch (error) {
           console.error('Auth error:', error);
@@ -94,16 +98,13 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signOut({ token }) {
-      // Clean up the device session when user signs out
       if (token?.sessionId) {
         try {
           await dbConnect();
           console.log('Cleaning up session on signOut:', token.sessionId);
-          
-          // Remove session from database
+
           await SessionModel.findByIdAndDelete(token.sessionId);
-          
-          // Remove session from user's sessions array
+
           if (token.email) {
             const user = await UserModel.findOne({ email: token.email });
             if (user) {
@@ -121,23 +122,21 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
-      // Handle signout - clear the token
-      if (trigger === 'signOut') {
-        console.log('JWT callback: signOut trigger, clearing token');
-        return {};
-      }
-
-      // Initial sign in
+      // Initial sign-in: populate token
       if (user) {
-        token.id = (user as any).id;
-        token.email = (user as any).email;
-        token.name = (user as any).name;
-        token.role = (user as any).role;
-
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+        token.role = user.role;
         if ((user as any).sessionId) {
           token.sessionId = (user as any).sessionId;
-          console.log('Setting sessionId in JWT:', token.sessionId);
+          token.lastSessionCheck = Date.now(); // avoid immediate check
         }
+      }
+
+      // Handle signOut: just return empty token (session will be cleared)
+      if (trigger === 'signOut') {
+        return {};
       }
 
       // Optional: handle session updates
@@ -147,67 +146,47 @@ export const authOptions: NextAuthOptions = {
         if (session.role) token.role = session.role;
       }
 
-      // Skip session validation during signout process
-      if (trigger === 'signOut') {
-        return token;
-      }
-
-      // On every request, verify that the device session still exists.
-      // Throttle the DB check a bit to avoid hammering the DB.
+      // Periodically validate device session (every 15s)
       const now = Date.now();
       const shouldCheck =
-        !token.lastSessionCheck || now - (token.lastSessionCheck as number) > 15_000; // 15s
+        !token.lastSessionCheck || now - (token.lastSessionCheck as number) > 15_000;
 
       if (shouldCheck && token.sessionId) {
         try {
           await dbConnect();
           const exists = await SessionModel.exists({ _id: token.sessionId });
           if (!exists) {
-            console.log('Session not found in database, forcing logout:', token.sessionId);
-            // Return null to force logout when session doesn't exist
-            return null;
+            console.log('Session not found in DB, invalidating JWT');
+            return {}; // will lead to session.user = undefined
           }
           token.sessionRevoked = false;
         } catch (e) {
-          // Fail closed: if we can't check, treat as revoked and force logout
-          console.error('Error checking session validity, forcing logout:', e);
-          return null;
+          console.error('Error checking session validity, invalidating JWT:', e);
+          return {}; // fail closed
         }
         token.lastSessionCheck = now;
       }
 
       return token;
     },
+
     async session({ session, token }) {
-      // If token is null or empty (session was revoked), return null to force logout
-      if (!token || Object.keys(token).length === 0) {
-        console.log('Token is null or empty, forcing session logout');
-        return null;
+      // Gracefully handle invalid or revoked sessions
+      if (!token || Object.keys(token).length === 0 || token.sessionRevoked === true) {
+        return {
+          ...session,
+          user: undefined,
+          expires: new Date().toISOString(), // optional: make it expired
+        };
       }
 
-      // If this device session was revoked (deleted from DB), return null to force logout
-      if (token.sessionRevoked) {
-        console.log('Session revoked, forcing logout');
-        return null;
-      }
-
-      // Ensure we have a valid session object
-      if (!session || !session.user) {
-        console.log('No valid session or user, returning null');
-        return null;
-      }
-
-      // Add user data to session
-      (session.user as any).id = token.id;
-      (session.user as any).email = token.email;
-      (session.user as any).name = token.name;
-      (session.user as any).role = token.role;
-
-      if (token.sessionId) {
-        (session.user as any).sessionId = token.sessionId;
-        console.log('Setting sessionId in session:', token.sessionId);
-      } else {
-        console.log('No sessionId in token');
+      // Ensure session.user exists
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.email = token.email as string;
+        session.user.name = token.name as string;
+        session.user.role = token.role as string;
+        session.user.sessionId = token.sessionId as string;
       }
 
       return session;
@@ -216,7 +195,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: '/auth/login',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'your-default-secret-here-change-in-production',
 };
 
 const handler = NextAuth(authOptions);
