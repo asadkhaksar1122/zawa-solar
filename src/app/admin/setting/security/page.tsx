@@ -16,7 +16,7 @@ export default function SecuritySettingsPage() {
         </CardDescription>
       </div>
       <SecuritySettingsForm
-        settings={settings}
+        settings={settings ?? undefined}
         onChange={(data) => handleFormChange('security', data)}
         isLoading={isLoading}
       />

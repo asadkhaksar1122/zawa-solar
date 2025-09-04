@@ -16,7 +16,7 @@ export default function EmailSettingsPage() {
         </CardDescription>
       </div>
       <EmailConfigurationForm
-        settings={settings}
+        settings={settings ?? undefined}
         onChange={(data) => handleFormChange('emailConfig', data)}
         isLoading={isLoading}
       />

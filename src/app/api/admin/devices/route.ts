@@ -31,81 +31,87 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Check if the current session exists in the database
-     const currentSessionId = (session.user as any).sessionId;
-     let currentSession:unknown = null;
-     
-     if (currentSessionId) {
-       currentSession = await SessionModel.findById(currentSessionId).lean();
-     }
-     
-     // If current session doesn't exist in the database, create it
-     if (!currentSession && currentSessionId) {
-       const ipAddress = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
-       const userAgent = request.headers.get('user-agent') || 'unknown';
-       
-       try {
-         const newSession = new SessionModel({
-           _id: currentSessionId,
-           userId: user._id,
-           ipAddress,
-           userAgent,
-           createdAt: new Date(),
-           lastAccessedAt: new Date(),
-         });
-         
-         await newSession.save();
-         
-         // Add to user's sessions if not already there
-         if (!user.sessions.includes(currentSessionId)) {
-           user.sessions.push(currentSessionId);
-           await user.save();
-         }
-         
-         currentSession = newSession.toObject();
-         console.log('Created new session:', currentSession);
-       } catch (err) {
-         console.error('Error creating session:', err);
-       }
-     } else if (!currentSession && !user.sessions.length) {
-       // Only create a fallback session if no sessionId is available AND user has no sessions at all
-       try {
-         const ipAddress = request.headers.get('x-forwarded-for') || request.ip || 'unknown';
-         const userAgent = request.headers.get('user-agent') || 'unknown';
-         
-         const newSession = new SessionModel({
-           userId: user._id,
-           ipAddress,
-           userAgent,
-           createdAt: new Date(),
-           lastAccessedAt: new Date(),
-         });
-         
-         await newSession.save();
-         user.sessions.push(newSession._id);
-         await user.save();
-         
-         currentSession = newSession.toObject();
-         console.log('Created fallback session:', currentSession);
-       } catch (err) {
-         console.error('Error creating fallback session:', err);
-       }
-     } else if (!currentSession && user.sessions.length > 0) {
-       // If user has existing sessions but current session is not found,
-       // use the most recent session as the current session instead of creating a new one
-       try {
-         const mostRecentSession = await SessionModel.findOne({ _id: { $in: user.sessions } })
-           .sort({ lastAccessedAt: -1 })
-           .lean();
-           
-         if (mostRecentSession) {
-           currentSession = mostRecentSession;
-           console.log('Using most recent session as current session');
-         }
-       } catch (err) {
-         console.error('Error finding most recent session:', err);
-       }
-     }
+    // Get current session information
+    const currentSessionId = (session.user as any).sessionId;
+    const currentIpAddress = request.headers.get('x-forwarded-for') || 
+                            request.headers.get('x-real-ip') || 
+                            request.ip || 
+                            'unknown';
+    const currentUserAgent = request.headers.get('user-agent') || 'unknown';
+    
+    let currentSession: any = null;
+    
+    console.log('Current session ID from JWT:', currentSessionId);
+    console.log('Current IP:', currentIpAddress);
+    console.log('Current User Agent:', currentUserAgent);
+    
+    // Try to find the current session in the database
+    if (currentSessionId) {
+      currentSession = await SessionModel.findById(currentSessionId).lean();
+      console.log('Found current session in DB:', !!currentSession);
+    }
+    
+    // If current session doesn't exist in DB but we have a sessionId, create it
+    if (!currentSession && currentSessionId) {
+      try {
+        const newSession = new SessionModel({
+          _id: currentSessionId,
+          userId: user._id,
+          ipAddress: Array.isArray(currentIpAddress) ? currentIpAddress[0] : currentIpAddress,
+          userAgent: currentUserAgent,
+          createdAt: new Date(),
+          lastAccessedAt: new Date(),
+        });
+        
+        await newSession.save();
+        
+        // Add to user's sessions if not already there
+        if (!user.sessions.some((s: any) => s.toString() === currentSessionId)) {
+          user.sessions.push(currentSessionId);
+          await user.save();
+        }
+        
+        currentSession = newSession.toObject();
+        console.log('Created new session with existing ID:', currentSession._id);
+      } catch (err) {
+        console.error('Error creating session with existing ID:', err);
+      }
+    }
+    
+    // If still no current session, try to find one with matching IP and user agent
+    if (!currentSession) {
+      currentSession = await SessionModel.findOne({
+        userId: user._id,
+        ipAddress: Array.isArray(currentIpAddress) ? currentIpAddress[0] : currentIpAddress,
+        userAgent: currentUserAgent
+      }).lean();
+      
+      if (currentSession) {
+        console.log('Found matching session by IP and user agent:', currentSession._id);
+      }
+    }
+    
+    // If still no current session and user has no sessions, create a fallback
+    if (!currentSession && user.sessions.length === 0) {
+      try {
+        const newSession = new SessionModel({
+          userId: user._id,
+          ipAddress: Array.isArray(currentIpAddress) ? currentIpAddress[0] : currentIpAddress,
+          userAgent: currentUserAgent,
+          createdAt: new Date(),
+          lastAccessedAt: new Date(),
+        });
+        
+        await newSession.save();
+        user.sessions.push(newSession._id);
+        await user.save();
+        
+        currentSession = newSession.toObject();
+        console.log('Created fallback session:', currentSession._id);
+      } catch (err) {
+        console.error('Error creating fallback session:', err);
+      }
+    }
 
     // Get all sessions for the user with additional details
     let sessions = await SessionModel.find({ _id: { $in: user.sessions } })

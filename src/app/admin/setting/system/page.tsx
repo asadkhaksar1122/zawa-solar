@@ -16,7 +16,7 @@ export default function SystemSettingsPage() {
         </CardDescription>
       </div>
       <SystemSettingsForm
-        settings={settings}
+        settings={settings ?? undefined}
         onChange={(data) => handleFormChange('system', data)}
         isLoading={isLoading}
       />

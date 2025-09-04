@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -79,6 +79,9 @@ const languages = [
 ];
 
 export function SiteInformationForm({ settings, onChange, isLoading }: SiteInformationFormProps) {
+  const isInitialMount = useRef(true);
+  const lastSettingsRef = useRef(settings);
+
   const form = useForm<SiteInformationFormValues>({
     resolver: zodResolver(siteInformationSchema),
     defaultValues: {
@@ -92,25 +95,38 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
     mode: 'onChange',
   });
 
-  // Update form when settings change
+  // Only reset form when settings actually change from external source
   useEffect(() => {
-    if (settings) {
+    // Skip the initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Only reset if settings have actually changed from an external source
+    // (not from our own onChange calls)
+    const hasExternalChange = settings &&
+      JSON.stringify(settings) !== JSON.stringify(lastSettingsRef.current);
+
+    if (hasExternalChange) {
+      lastSettingsRef.current = settings;
       form.reset({
-        siteName: settings.siteName || '',
-        siteDescription: settings.siteDescription || '',
-        siteUrl: settings.siteUrl || '',
-        adminEmail: settings.adminEmail || '',
-        timezone: settings.timezone || 'UTC',
-        language: settings.language || 'en',
+        siteName: settings?.siteName || '',
+        siteDescription: settings?.siteDescription || '',
+        siteUrl: settings?.siteUrl || '',
+        adminEmail: settings?.adminEmail || '',
+        timezone: settings?.timezone || 'UTC',
+        language: settings?.language || 'en',
       });
     }
   }, [settings, form]);
 
   // Watch for form changes and notify parent
-  const watchedValues = form.watch();
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name) {
+        // Update our ref to prevent unnecessary resets
+        lastSettingsRef.current = value as Partial<WebsiteSettings>;
         onChange(value as Partial<SiteInformationFormValues>);
       }
     });
@@ -140,8 +156,8 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
                   <FormItem>
                     <FormLabel>Site Name *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Zawa Solar Energy" 
+                      <Input
+                        placeholder="Zawa Solar Energy"
                         {...field}
                         disabled={isLoading}
                       />
@@ -161,8 +177,8 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
                   <FormItem>
                     <FormLabel>Site URL *</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="https://zawasoler.com" 
+                      <Input
+                        placeholder="https://zawasoler.com"
                         {...field}
                         disabled={isLoading}
                       />
@@ -182,9 +198,9 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
                   <FormItem>
                     <FormLabel>Admin Email *</FormLabel>
                     <FormControl>
-                      <Input 
+                      <Input
                         type="email"
-                        placeholder="admin@zawasoler.com" 
+                        placeholder="admin@zawasoler.com"
                         {...field}
                         disabled={isLoading}
                       />
@@ -217,7 +233,7 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Timezone *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select timezone" />
@@ -245,7 +261,7 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Language *</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isLoading}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isLoading}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select language" />
@@ -285,7 +301,7 @@ export function SiteInformationForm({ settings, onChange, isLoading }: SiteInfor
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Leading provider of sustainable solar energy solutions..."
                       className="min-h-[100px]"
                       {...field}

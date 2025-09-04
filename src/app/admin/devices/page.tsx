@@ -95,13 +95,38 @@ export default function DevicesPage() {
       console.log('Is current session:', isCurrentSession);
 
       if (isCurrentSession) {
-        console.log('Logging out current session');
-        await signOut({ redirect: false });
-        router.push('/auth/login');
+        // For current session, use NextAuth signOut which will trigger the cleanup
+        console.log('Logging out current session from NextAuth');
+        toast.success('Logging out from current device...');
+        
+        // Use a small delay to ensure the toast is shown
+        setTimeout(async () => {
+          try {
+            await signOut({ 
+              redirect: false,
+              callbackUrl: '/auth/login'
+            });
+            router.push('/auth/login');
+          } catch (signOutError) {
+            console.error('Error during NextAuth signOut:', signOutError);
+            // Fallback: try to remove session manually and redirect
+            try {
+              await fetch('/api/admin/devices', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId }),
+              });
+            } catch (e) {
+              console.error('Fallback session removal failed:', e);
+            }
+            router.push('/auth/login');
+          }
+        }, 500);
         return;
       }
 
-      console.log('Logging out remote session:', sessionId);
+      // For remote sessions, remove from database
+      console.log('Removing remote session from database:', sessionId);
       const response = await fetch('/api/admin/devices', {
         method: 'DELETE',
         headers: {
@@ -197,7 +222,18 @@ export default function DevicesPage() {
       <Toaster richColors position="top-center" />
       <Card className="w-full">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg sm:text-xl md:text-2xl">Logged In Devices</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg sm:text-xl md:text-2xl">Logged In Devices</CardTitle>
+            <Badge variant="secondary" className="text-sm">
+              {sessions.length} {sessions.length === 1 ? 'Device' : 'Devices'}
+            </Badge>
+          </div>
+          {sessions.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              You are currently logged in on {sessions.length} {sessions.length === 1 ? 'device' : 'devices'}. 
+              You can log out from any device by clicking the "Log Out" button.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="px-2 sm:px-4 md:px-6">
           {error && (

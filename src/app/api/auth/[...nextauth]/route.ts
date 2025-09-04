@@ -52,16 +52,27 @@ export const authOptions: NextAuthOptions = {
             }
           }
 
+          // Get IP address and user agent from request
+          const ipAddress = req.headers?.['x-forwarded-for'] || 
+                           req.headers?.['x-real-ip'] || 
+                           req.connection?.remoteAddress || 
+                           req.socket?.remoteAddress || 
+                           'unknown';
+          const userAgent = req.headers?.['user-agent'] || 'unknown';
+
           // Create our own "device session" record (this is different from NextAuth's JWT cookie)
           const session = new SessionModel({
             userId: user._id,
-            ipAddress: req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown',
-            userAgent: req.headers?.['user-agent'] || 'unknown',
+            ipAddress: Array.isArray(ipAddress) ? ipAddress[0] : ipAddress,
+            userAgent,
           });
           await session.save();
 
-          user.sessions.push(session._id);
-          await user.save();
+          // Add session to user's sessions array if not already present
+          if (!user.sessions.includes(session._id)) {
+            user.sessions.push(session._id);
+            await user.save();
+          }
 
           return {
             id: user.id,
@@ -81,8 +92,41 @@ export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
   },
+  events: {
+    async signOut({ token }) {
+      // Clean up the device session when user signs out
+      if (token?.sessionId) {
+        try {
+          await dbConnect();
+          console.log('Cleaning up session on signOut:', token.sessionId);
+          
+          // Remove session from database
+          await SessionModel.findByIdAndDelete(token.sessionId);
+          
+          // Remove session from user's sessions array
+          if (token.email) {
+            const user = await UserModel.findOne({ email: token.email });
+            if (user) {
+              user.sessions = user.sessions.filter(
+                (s: any) => s.toString() !== token.sessionId
+              );
+              await user.save();
+            }
+          }
+        } catch (error) {
+          console.error('Error cleaning up session on signOut:', error);
+        }
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user, trigger, session }) {
+      // Handle signout - clear the token
+      if (trigger === 'signOut') {
+        console.log('JWT callback: signOut trigger, clearing token');
+        return {};
+      }
+
       // Initial sign in
       if (user) {
         token.id = (user as any).id;
@@ -101,6 +145,11 @@ export const authOptions: NextAuthOptions = {
         if (session.name) token.name = session.name;
         if (session.email) token.email = session.email;
         if (session.role) token.role = session.role;
+      }
+
+      // Skip session validation during signout process
+      if (trigger === 'signOut') {
+        return token;
       }
 
       // On every request, verify that the device session still exists.
@@ -125,23 +174,34 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // If this device session was revoked (deleted from DB), kill the NextAuth session
+      // If this device session was revoked (deleted from DB), return a minimal session
+      // that will cause the client to redirect to login
       if (token.sessionRevoked) {
+        console.log('Session revoked, returning minimal session');
+        return {
+          ...session,
+          user: null,
+          expires: new Date(0).toISOString(), // Set to expired
+        };
+      }
+
+      // Ensure we have a valid session object
+      if (!session || !session.user) {
+        console.log('No valid session or user, returning null');
         return null;
       }
 
-      if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).email = token.email;
-        (session.user as any).name = token.name;
-        (session.user as any).role = token.role;
+      // Add user data to session
+      (session.user as any).id = token.id;
+      (session.user as any).email = token.email;
+      (session.user as any).name = token.name;
+      (session.user as any).role = token.role;
 
-        if (token.sessionId) {
-          (session.user as any).sessionId = token.sessionId;
-          console.log('Setting sessionId in session:', token.sessionId);
-        } else {
-          console.log('No sessionId in token');
-        }
+      if (token.sessionId) {
+        (session.user as any).sessionId = token.sessionId;
+        console.log('Setting sessionId in session:', token.sessionId);
+      } else {
+        console.log('No sessionId in token');
       }
 
       return session;

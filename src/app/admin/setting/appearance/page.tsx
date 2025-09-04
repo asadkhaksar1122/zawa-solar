@@ -18,7 +18,7 @@ export default function AppearanceSettingsPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <AppearanceSettingsForm
-          settings={settings}
+          settings={settings ?? undefined}
           onChange={(data) => handleFormChange('appearance', data)}
           isLoading={isLoading}
         />
