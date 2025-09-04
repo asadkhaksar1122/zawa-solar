@@ -9,6 +9,7 @@ import { SettingsProvider } from '@/contexts/SettingsContext';
 import { SecurityProvider } from '@/contexts/SecurityContext';
 import { MaintenanceMode } from '@/components/system/MaintenanceMode';
 import { SessionTimeoutWarning } from '@/components/security/SessionTimeoutWarning';
+import { SessionMonitor } from '@/components/security/SessionMonitor';
 import VpnWarning from '@/components/security/VpnWarning';
 import { Providers } from './Providers';
 
@@ -43,6 +44,7 @@ export default function RootLayout({
                 <Toaster richColors position="top-center" closeButton />
                 <MaintenanceMode>
                   <Providers>
+                    <SessionMonitor />
                     {children}
                   </Providers>
                   <Chatbot></Chatbot>

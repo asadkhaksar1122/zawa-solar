@@ -37,13 +37,20 @@ export default function DevicesPage() {
       return;
     }
 
+    // Check if session exists but user is null (session was revoked)
+    if (status === 'authenticated' && session && !session.user) {
+      console.log('Session user is null, redirecting to login');
+      router.push('/auth/login');
+      return;
+    }
+
     if (status === 'authenticated' && (session?.user as any)?.role !== 'admin') {
       router.push('/');
       return;
     }
 
     // Fetch sessions data
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && session?.user) {
       fetchSessions();
     }
   }, [status, session, router]);

@@ -162,11 +162,16 @@ export const authOptions: NextAuthOptions = {
         try {
           await dbConnect();
           const exists = await SessionModel.exists({ _id: token.sessionId });
-          token.sessionRevoked = !exists;
+          if (!exists) {
+            console.log('Session not found in database, forcing logout:', token.sessionId);
+            // Return null to force logout when session doesn't exist
+            return null;
+          }
+          token.sessionRevoked = false;
         } catch (e) {
-          // Fail closed: if we can't check, treat as revoked
-          token.sessionRevoked = true;
-          console.error('Error checking session validity:', e);
+          // Fail closed: if we can't check, treat as revoked and force logout
+          console.error('Error checking session validity, forcing logout:', e);
+          return null;
         }
         token.lastSessionCheck = now;
       }
@@ -174,15 +179,16 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // If this device session was revoked (deleted from DB), return a minimal session
-      // that will cause the client to redirect to login
+      // If token is null or empty (session was revoked), return null to force logout
+      if (!token || Object.keys(token).length === 0) {
+        console.log('Token is null or empty, forcing session logout');
+        return null;
+      }
+
+      // If this device session was revoked (deleted from DB), return null to force logout
       if (token.sessionRevoked) {
-        console.log('Session revoked, returning minimal session');
-        return {
-          ...session,
-          user: null,
-          expires: new Date(0).toISOString(), // Set to expired
-        };
+        console.log('Session revoked, forcing logout');
+        return null;
       }
 
       // Ensure we have a valid session object
