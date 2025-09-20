@@ -49,7 +49,7 @@ export default function RootLayout({
                   </Providers>
                   <Chatbot></Chatbot>
                   <SessionTimeoutWarning />
-                  {/* <VpnWarning /> */}
+                  <VpnWarning />
                 </MaintenanceMode>
               </SecurityProvider>
             </SettingsProvider>
