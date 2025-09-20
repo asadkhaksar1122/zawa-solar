@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 
-type IpInfo = { ip?: string; org?: string; asn?: string };
+type IpInfo = { ip?: string; org?: string; asn?: string; country?: string };
 
 export default function VpnWarning() {
     const { settings } = useSettings();
@@ -31,273 +31,361 @@ export default function VpnWarning() {
         setError(null);
 
         try {
-            let data: any = null;
-            let fetchError: Error | null = null;
+            let vpnDetected = false;
+            let ipData: any = null;
 
-            // Try primary API with VPN detection
+            // Method 1: Try VPN detection API (most reliable)
             try {
-                const res = await fetch('https://ipapi.co/json/', {
+                const vpnCheckRes = await fetch('https://vpnapi.io/api/?key=demo', {
                     cache: 'no-store',
-                    mode: 'cors',
-                    headers: {
-                        'Accept': 'application/json',
-                    }
                 });
 
-                if (res.ok) {
-                    data = await res.json();
-                } else {
-                    throw new Error(`API responded with ${res.status}`);
-                }
-            } catch (e) {
-                console.warn('Primary API failed, trying fallback:', e);
-                fetchError = e as Error;
-            }
+                if (vpnCheckRes.ok) {
+                    const vpnData = await vpnCheckRes.json();
+                    console.log('VPN API Check:', vpnData);
 
-            // Fallback to alternative API if primary fails
-            if (!data) {
-                try {
-                    const fallbackRes = await fetch('https://api.ipify.org?format=json');
-                    const ipData = await fallbackRes.json();
+                    // Check VPN/Proxy/Tor detection
+                    if (vpnData.security) {
+                        vpnDetected = vpnData.security.vpn ||
+                            vpnData.security.proxy ||
+                            vpnData.security.tor ||
+                            vpnData.security.relay;
 
-                    // Get detailed info using the IP
-                    const detailRes = await fetch(`https://ipwho.is/${ipData.ip}`);
-                    const detailData = await detailRes.json();
-
-                    data = {
-                        ip: detailData.ip,
-                        org: detailData.connection?.org || detailData.connection?.isp || '',
-                        asn: detailData.connection?.asn || '',
-                        country: detailData.country,
-                        city: detailData.city,
-                        // ipwho.is provides security info
-                        security: detailData.security
-                    };
-                } catch (e) {
-                    console.warn('Fallback API also failed:', e);
-
-                    // Last resort: try ipinfo.io
-                    try {
-                        const lastRes = await fetch('https://ipinfo.io/json');
-                        const lastData = await lastRes.json();
-                        data = {
-                            ip: lastData.ip,
-                            org: lastData.org || '',
-                            asn: lastData.asn || '',
-                            country: lastData.country,
-                            city: lastData.city
+                        ipData = {
+                            ip: vpnData.ip,
+                            org: vpnData.network?.autonomous_system_organization || '',
+                            asn: vpnData.network?.autonomous_system_number || '',
+                            country: vpnData.location?.country || ''
                         };
-                    } catch (finalError) {
-                        console.error('All API attempts failed:', finalError);
-                        throw fetchError || finalError;
+
+                        if (vpnDetected) {
+                            console.log('VPN detected by vpnapi.io');
+                            setInfo(ipData);
+                            setOpen(isVpnProtected);
+                            return true;
+                        }
                     }
                 }
+            } catch (e) {
+                console.warn('VPN API check failed:', e);
             }
 
-            const ip = data.ip as string | undefined;
-            const org = (data.org || data.org_name || data.asn_org || '') as string;
-            const asn = (data.asn || data.asn_number || '') as string;
+            // Method 2: Check with ipwho.is (has security info)
+            try {
+                const ipWhoRes = await fetch('https://ipwho.is/', {
+                    cache: 'no-store',
+                });
 
-            setInfo({ ip, org, asn });
+                if (ipWhoRes.ok) {
+                    const ipWhoData = await ipWhoRes.json();
+                    console.log('IPWho Check:', ipWhoData);
 
-            const lowerOrg = String(org || '').toLowerCase();
-            const lowerAsn = String(asn || '').toLowerCase();
+                    // Check security flags
+                    if (ipWhoData.security) {
+                        vpnDetected = ipWhoData.security.vpn || ipWhoData.security.proxy;
 
-            // Check if API already detected VPN (ipwho.is provides this)
-            if (data.security?.vpn === true || data.security?.proxy === true) {
-                console.log('VPN detected by API security check');
-                if (isVpnProtected) {
-                    setOpen(true);
+                        if (!ipData) {
+                            ipData = {
+                                ip: ipWhoData.ip,
+                                org: ipWhoData.connection?.org || ipWhoData.connection?.isp || '',
+                                asn: ipWhoData.connection?.asn || '',
+                                country: ipWhoData.country || ''
+                            };
+                        }
+
+                        if (vpnDetected) {
+                            console.log('VPN detected by ipwho.is security check');
+                            setInfo(ipData);
+                            setOpen(isVpnProtected);
+                            return true;
+                        }
+                    }
                 }
-                return true;
+            } catch (e) {
+                console.warn('IPWho check failed:', e);
             }
 
-            // Known legitimate ISP patterns to exclude
-            const legitimateISPPatterns = [
-                'comcast', 'verizon', 'at&t', 'att-', 'spectrum', 'charter',
-                'cox ', 'cox-', 'time warner', 'centurylink', 'frontier',
-                'windstream', 'mediacom', 'optimum', 'suddenlink',
-                'virgin media', 'bt group', 'sky broadband', 'talktalk',
-                'vodafone', 'orange', 'telefonica', 'deutsche telekom',
-                'rogers', 'bell canada', 'telus', 'shaw',
-                'telstra', 'optus', 'tpg telecom',
-                'airtel', 'jio', 'bsnl', 'mtnl',
-                'china telecom', 'china unicom', 'china mobile',
-                'ntt', 'kddi', 'softbank',
-                'kt corporation', 'sk broadband', 'lg u+',
-                'singtel', 'starhub', 'm1',
-                'pldt', 'globe telecom',
-                'residential', 'broadband', 'cable', 'dsl', 'fiber',
-                'fios', 'xfinity', 'u-verse'
+            // Method 3: Get IP info from multiple sources and analyze
+            if (!ipData) {
+                try {
+                    const res = await fetch('https://ipapi.co/json/', {
+                        cache: 'no-store',
+                        mode: 'cors',
+                        headers: {
+                            'Accept': 'application/json',
+                        }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        ipData = {
+                            ip: data.ip,
+                            org: data.org || '',
+                            asn: data.asn || '',
+                            country: data.country_name || ''
+                        };
+                        console.log('IPAPI data:', data);
+                    }
+                } catch (e) {
+                    console.warn('IPAPI failed:', e);
+                }
+            }
+
+            // Fallback: ipinfo.io
+            if (!ipData) {
+                try {
+                    const res = await fetch('https://ipinfo.io/json');
+                    const data = await res.json();
+                    ipData = {
+                        ip: data.ip,
+                        org: data.org || '',
+                        asn: data.asn || '',
+                        country: data.country || ''
+                    };
+                    console.log('IPInfo data:', data);
+                } catch (e) {
+                    console.warn('IPInfo failed:', e);
+                }
+            }
+
+            // If we still don't have data, error out
+            if (!ipData) {
+                throw new Error('Unable to fetch IP information');
+            }
+
+            setInfo(ipData);
+
+            const org = String(ipData.org || '').toLowerCase();
+            const asn = String(ipData.asn || '').toLowerCase();
+
+            // Method 4: Pattern matching on organization/ASN
+
+            // Known VPN providers (comprehensive list)
+            const knownVpnProviders = [
+                // Popular VPN Services
+                'nordvpn', 'nord vpn', 'tefincom',
+                'expressvpn', 'express vpn', 'express technologies',
+                'surfshark', 'surf shark',
+                'cyberghost', 'cyber ghost',
+                'private internet', 'pia-', 'london trust media',
+                'ipvanish', 'ip vanish', 'mudhook', 'stackpath',
+                'vyprvpn', 'vypr vpn', 'golden frog',
+                'protonvpn', 'proton vpn', 'proton technologies',
+                'mullvad', 'windscribe', 'tunnelbear', 'tunnel bear',
+                'hotspot shield', 'anchor free', 'pango', 'aura',
+                'hide.me', 'hideme', 'evpn',
+                'purevpn', 'pure vpn', 'gaditek',
+                'zenmate', 'zen mate',
+                'ivacy', 'privatevpn', 'private vpn',
+                'atlas vpn', 'atlasvpn',
+                'cryptostorm', 'crypto storm',
+                'perfect privacy', 'airvpn', 'air vpn',
+                'trust.zone', 'trustzone',
+                'vpn unlimited', 'keepsolid',
+                'ghostpath', 'torguard', 'tor guard',
+                'safervpn', 'safer vpn',
+                'strongvpn', 'strong vpn', 'strong technology',
+                'liquidvpn', 'liquid vpn',
+                'vpn.ac', 'vpnac', 'netsec',
+                'ironsocket', 'iron socket',
+                'blackvpn', 'black vpn',
+                'earthvpn', 'earth vpn',
+                'celo vpn', 'celovpn',
+                'freedom vpn', 'freedomvpn',
+                'opera vpn', 'operavpn',
+                'betternet', 'better net',
+                'speedify', 'connectify',
+                'keenow', 'keen ow',
+                'seed4.me', 'seed4me',
+                'myprivate', 'my private',
+                'zoog', 'zoogvpn',
+                'astrill', 'rusvpn', 'rus vpn',
+                'fastestvpn', 'fastest vpn',
+                'ultra vpn', 'ultravpn',
+                'touch vpn', 'touchvpn',
+                'browsec', 'kalium network',
+
+                // VPN related terms
+                'vpn service', 'vpn provider', 'virtual private',
+                'secure connection', 'encrypted tunnel',
+                'anonymizer', 'anonymous proxy',
+                'socks5', 'shadowsocks', 'v2ray', 'wireguard',
+                'openvpn', 'open vpn', 'softether',
+
+                // Known hosting providers used by VPNs
+                'm247', 'datacamp', 'leaseweb', 'creanova',
+                'global layer', 'globallayer',
+                'quadranet', 'psychz', 'choopa', 'vultr',
+                'kamatera', 'hostkey', 'hosthatch',
+                'packet exchange', 'packetexchange',
+                'serverius', 'worldstream', 'world stream',
+                'privatelayer', 'private layer',
+                'libertyvps', 'liberty vps',
+                'xtom', 'xhost', 'hosthatch',
+                'nocix', 'datacenter luxembourg',
+                'tzulo', 'feral hosting', 'feralhosting',
+                'buyvm', 'frantech',
             ];
 
-            // Check if it's a known legitimate ISP
-            const isLegitimateISP = legitimateISPPatterns.some(pattern =>
-                lowerOrg.includes(pattern)
-            );
-
-            if (isLegitimateISP) {
-                console.log('Legitimate ISP detected:', org);
-                setOpen(false);
-                return false;
-            }
-
-            // Specific VPN/Hosting provider keywords (more targeted)
-            const definiteVpnKeywords = [
-                // VPN Services
-                'nordvpn', 'expressvpn', 'surfshark', 'cyberghost',
-                'private internet access', 'pia-', 'ipvanish', 'vyprvpn',
-                'protonvpn', 'mullvad', 'windscribe', 'tunnelbear',
-                'hotspot shield', 'hide.me', 'purevpn', 'zenmate',
-                'vpn service', 'vpn provider', 'virtual private network',
-
-                // Proxy Services
-                'proxy service', 'proxy provider', 'socks5', 'shadowsocks',
-                'tor exit', 'anonymizer', 'hide my',
-
-                // Cloud/Hosting Providers (definitive)
-                'amazon web services', 'amazon technologies', 'aws-',
-                'microsoft azure', 'azure-', 'google cloud', 'gcp-',
-                'digitalocean', 'linode', 'vultr', 'ovhcloud', 'ovh sas',
-                'hetzner online', 'contabo', 'scaleway', 'upcloud',
-                'alibaba cloud', 'oracle cloud', 'ibm cloud',
-                'cloudflare warp', 'cloudflare, inc',
+            // Cloud/Hosting providers (definitive)
+            const hostingProviders = [
+                // Major cloud providers
+                'amazon', 'aws', 'ec2', 'amazon web services', 'amazon technologies',
+                'microsoft azure', 'azure', 'microsoft corporation',
+                'google cloud', 'google llc', 'gcp',
+                'digitalocean', 'digital ocean', 'do-',
+                'linode', 'akamai',
+                'vultr holdings', 'vultr.com', 'choopa, llc', 'choopa.com',
+                'ovh', 'ovhcloud', 'ovh sas', 'ovh hosting',
+                'hetzner', 'hetzner online',
+                'contabo', 'contabo gmbh',
+                'scaleway', 'online sas', 'online.net',
+                'upcloud', 'upcloud ltd',
+                'alibaba', 'aliyun', 'alibaba cloud',
+                'oracle cloud', 'oracle corporation',
+                'ibm cloud', 'softlayer',
+                'cloudflare', 'cloudflare warp',
+                'ramnode', 'ram node',
+                'bandwagon', 'bandwagonhost',
+                'nexeon', 'nexeon technologies',
+                'virmach', 'virtual machine',
+                'racknerd', 'rack nerd',
+                'ionos', '1&1', '1and1',
+                'godaddy', 'go daddy',
+                'namecheap', 'name cheap',
+                'hostinger', 'hosting services',
 
                 // Datacenter indicators
-                'datacenter', 'data center', 'data-center',
-                'colocation', 'dedicated server', 'virtual server',
-                'vps provider', 'hosting provider', 'cloud hosting',
-                'server hosting', 'web hosting'
+                'data center', 'datacenter', 'datacentre',
+                'colocation', 'colo provider',
+                'dedicated server', 'virtual server',
+                'vps', 'virtual private server',
+                'hosting', 'server farm',
+                'cloud infrastructure', 'cloud services',
+                'content delivery network', 'cdn provider',
             ];
 
-            // Check for multiple indicators (more reliable)
-            const vpnIndicators = [
-                // Strong indicators
-                definiteVpnKeywords.some(k => lowerOrg.includes(k)),
-                lowerOrg.includes('vpn') && !lowerOrg.includes('mvpn'), // Exclude MVPN (managed VPN for enterprises)
-                lowerOrg.includes('proxy'),
-                lowerOrg.includes('tunnel') && !lowerOrg.includes('split'), // Exclude split tunneling references
-
-                // Medium indicators (need combination)
-                lowerOrg.includes('hosting'),
-                lowerOrg.includes('server') && !lowerOrg.includes('server room'),
-                lowerOrg.includes('cloud'),
-                lowerOrg.includes('vps'),
-
-                // Weak indicators (only count if combined with others)
-                lowerOrg.includes('technologies') && lowerOrg.includes('inc'),
-                lowerOrg.includes('services') && lowerOrg.includes('llc'),
-            ];
-
-            // Count strong indicators (first 4) and medium/weak indicators
-            const strongIndicatorCount = vpnIndicators.slice(0, 4).filter(Boolean).length;
-            const mediumIndicatorCount = vpnIndicators.slice(4, 8).filter(Boolean).length;
-            const weakIndicatorCount = vpnIndicators.slice(8).filter(Boolean).length;
-
-            // Determine if VPN based on indicator combination
-            const suspected =
-                strongIndicatorCount >= 1 || // Any strong indicator
-                mediumIndicatorCount >= 2 || // Multiple medium indicators
-                (mediumIndicatorCount >= 1 && weakIndicatorCount >= 1); // Combination
-
-            // Special ASN checks for known VPN/hosting ASNs
-            const knownVpnAsns = [
+            // ASN numbers of known VPN/hosting providers
+            const vpnHostingASNs = [
                 'as13335', // Cloudflare
                 'as16509', // Amazon
                 'as15169', // Google
                 'as8075',  // Microsoft
                 'as14061', // DigitalOcean
                 'as63949', // Linode
-                'as20473', // Vultr
+                'as20473', // Vultr/Choopa
                 'as16276', // OVH
                 'as24940', // Hetzner
                 'as51167', // Contabo
+                'as197540', // Neterra
+                'as9009',  // M247
+                'as201011', // Core-Backbone
+                'as136787', // TEFINCOM (NordVPN)
+                'as212238', // CDLAN (NordVPN)
+                'as43350', // NForce
+                'as60068', // CDN77
+                'as204196', // Abelohost
+                'as51396', // Privatelayer
+                'as40676', // Psychz
+                'as36352', // ColoCrossing
+                'as53667', // FranTech
+                'as8100',  // QuadraNet
+                'as46664', // VolumeDrive
+                'as394380', // Leaseweb
+                'as60781', // Leaseweb Netherlands
+                'as28753', // Leaseweb Germany
+                'as59253', // Leaseweb Asia
+                'as49981', // WorldStream
+                'as58305', // WorldStream International
             ];
 
-            const isKnownVpnAsn = knownVpnAsns.some(vpnAsn =>
-                lowerAsn.includes(vpnAsn)
+            // Check if it matches VPN patterns
+            const isKnownVPN = knownVpnProviders.some(vpn => org.includes(vpn));
+            const isHosting = hostingProviders.some(host => org.includes(host));
+            const isVPNASN = vpnHostingASNs.some(vpnAsn => asn.includes(vpnAsn.toLowerCase()));
+
+            // Check for residential ISP patterns (to exclude false positives)
+            const residentialPatterns = [
+                // US ISPs
+                'comcast', 'xfinity', 'verizon fios', 'verizon wireless',
+                'at&t internet', 'att-', 'spectrum', 'charter communications',
+                'cox communications', 'cox business', 'time warner cable',
+                'centurylink', 'frontier communications', 'windstream',
+                'mediacom', 'optimum', 'cablevision', 'suddenlink',
+                'wow!', 'wide open west', 'rcn', 'atlantic broadband',
+                'armstrong', 'service electric',
+
+                // International ISPs
+                'virgin media', 'bt group', 'british telecom', 'sky broadband',
+                'talktalk', 'ee limited', 'plusnet',
+                'vodafone', 'orange', 'telefonica', 'deutsche telekom',
+                'swisscom', 'proximus', 'kpn', 'ziggo',
+                'rogers', 'bell canada', 'telus', 'shaw',
+                'telstra', 'optus', 'tpg telecom',
+                'singtel', 'starhub', 'm1 limited',
+                'ntt', 'kddi', 'softbank', 'rakuten',
+                'china telecom', 'china unicom', 'china mobile',
+                'airtel', 'reliance jio', 'bsnl', 'mtnl',
+                'korea telecom', 'sk broadband', 'lg u+',
+
+                // Residential indicators
+                'residential', 'broadband', 'cable', 'dsl', 'fiber',
+                'fttc', 'ftth', 'fttp', 'docsis',
+                'home internet', 'consumer internet',
+            ];
+
+            const isResidential = residentialPatterns.some(pattern =>
+                org.includes(pattern)
             );
 
-            const finalSuspected = suspected || isKnownVpnAsn;
-
-            // Log for debugging
-            console.log('VPN Detection:', {
-                ip,
-                org,
-                asn,
-                isLegitimateISP,
-                strongIndicatorCount,
-                mediumIndicatorCount,
-                isKnownVpnAsn,
-                suspected: finalSuspected
-            });
-
-            // Only update modal state if VPN protection is enabled
-            if (isVpnProtected) {
-                setOpen(finalSuspected);
+            // Only exclude if clearly residential AND not matching VPN patterns
+            if (isResidential && !isKnownVPN && !isHosting && !isVPNASN) {
+                console.log('Residential ISP detected (not VPN):', org);
+                setOpen(false);
+                return false;
             }
 
-            return finalSuspected;
+            // Determine if VPN/Proxy
+            vpnDetected = isKnownVPN || isHosting || isVPNASN;
+
+            console.log('VPN Detection Result:', {
+                ip: ipData.ip,
+                org: ipData.org,
+                asn: ipData.asn,
+                isKnownVPN,
+                isHosting,
+                isVPNASN,
+                isResidential,
+                vpnDetected
+            });
+
+            if (isVpnProtected) {
+                setOpen(vpnDetected);
+            }
+
+            return vpnDetected;
         } catch (e) {
             console.error('VPN detection error:', e);
 
-            const errorMessage = e instanceof Error ? e.message : 'Unknown error occurred';
-
-            // Check if it's a network error
-            if (errorMessage.includes('fetch') || errorMessage.includes('network')) {
-                setError('Network error. Please check your internet connection and try again.');
-            } else {
-                setError('Unable to verify your connection. Please try again.');
-            }
-
+            // On error, be conservative - don't show modal
+            setError('Unable to verify your connection. Please try again.');
             setInfo(null);
-
-            // Don't show modal on error for regular connections
-            // Only show if we have reason to believe it's a VPN blocking the check
-            if (isVpnProtected && errorMessage.includes('blocked')) {
-                setOpen(true);
-            } else {
-                setOpen(false); // Don't show modal on general errors
-            }
-
-            return false; // Don't assume VPN on error
+            setOpen(false);
+            return false;
         } finally {
             setChecking(false);
         }
     }, [isVpnProtected]);
 
-    // Check on initial mount with retry logic
+    // Check on initial mount
     useEffect(() => {
         if (!isVpnProtected) {
             setOpen(false);
             return;
         }
 
-        // Initial check with retry
-        const checkWithRetry = async (retries = 2) => {
-            for (let i = 0; i < retries; i++) {
-                try {
-                    const isVpn = await detectVpn();
-                    if (!isVpn) {
-                        // Not a VPN, no need to retry
-                        break;
-                    }
-                    break; // Success, exit loop
-                } catch (e) {
-                    console.log(`Attempt ${i + 1} failed, retrying...`);
-                    if (i === retries - 1) {
-                        // Final attempt failed - don't show modal
-                        setError('Unable to verify connection after multiple attempts.');
-                        setOpen(false); // Don't show modal on persistent failure
-                    } else {
-                        // Wait before retry
-                        await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-                    }
-                }
-            }
-        };
-
-        checkWithRetry();
+        // Run detection immediately
+        detectVpn();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVpnProtected]);
 
@@ -334,7 +422,7 @@ export default function VpnWarning() {
                             ? 'Checking your connection...'
                             : error
                                 ? 'We could not verify your connection. This might be due to network issues.'
-                                : 'We detected that you may be connected through a VPN or proxy. Please disable your VPN and click Refresh to continue.'}
+                                : 'We detected that you are connected through a VPN or proxy service. Please disable your VPN/proxy and click Refresh to continue.'}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -352,6 +440,9 @@ export default function VpnWarning() {
                                             <div><strong>ISP/Organization:</strong> {info?.org ?? 'unknown'}</div>
                                             {info?.asn && (
                                                 <div><strong>ASN:</strong> {info.asn}</div>
+                                            )}
+                                            {info?.country && (
+                                                <div><strong>Country:</strong> {info.country}</div>
                                             )}
                                         </div>
                                     )}
